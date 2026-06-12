@@ -137,6 +137,25 @@ textarea{resize:vertical;min-height:72px}
 .drw-hd{padding:18px 22px;border-bottom:1px solid var(--border);position:sticky;top:0;
          background:#fff;z-index:1;display:flex;align-items:center;justify-content:space-between}
 .drw-body{padding:18px 22px}
+/* Situação documento */
+.sit{display:inline-flex;align-items:center;gap:3px;padding:2px 8px;border-radius:20px;font-size:10px;font-weight:700;white-space:nowrap}
+.sit-em_elaboracao{background:#F3F4F6;color:#4B5563}
+.sit-protocolado{background:#EFF6FF;color:#1D4ED8}
+.sit-em_analise{background:#FEF3C7;color:#92400E}
+.sit-aprovado{background:#DCFCE7;color:#15803D}
+.sit-exigencia{background:#FEE2E2;color:#991B1B}
+.sit-arquivado{background:#F3F4F6;color:#9CA3AF}
+/* ETAP */
+.etap-membro{display:flex;align-items:flex-start;gap:10px;padding:10px 0;border-bottom:1px solid var(--border)}
+.etap-do-row{display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--border)}
+.etap-status{padding:4px 12px;border-radius:20px;font-size:11px;font-weight:700}
+/* Auditoria */
+.aud-item{display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--border)}
+.aud-resultado{display:flex;gap:6px}
+.aud-btn{padding:4px 10px;border-radius:6px;border:2px solid var(--border);font-size:11px;font-weight:600;cursor:pointer;background:white;transition:.15s}
+.aud-btn.conforme{border-color:var(--green);background:var(--gbg);color:#15803D}
+.aud-btn.nao_conforme{border-color:var(--red);background:var(--rbg);color:#991B1B}
+.aud-btn.nao_aplicavel{border-color:#9CA3AF;background:#F3F4F6;color:#4B5563}
 /* Calendário */
 .cal-grid{display:grid;grid-template-columns:repeat(7,1fr)}
 .cal-dname{text-align:center;font-size:11px;font-weight:700;color:var(--muted);padding:7px 0;text-transform:uppercase;letter-spacing:.4px}
@@ -222,6 +241,7 @@ textarea{resize:vertical;min-height:72px}
     <div class="ni" data-s="processos" onclick="go('processos')"><i data-lucide="git-branch"></i>Processos SEI</div>
     <div class="nav-sep">Gestão</div>
     <div class="ni" data-s="escolas" onclick="go('escolas')"><i data-lucide="building-2"></i>Escolas</div>
+    <div class="ni" data-s="etap" onclick="go('etap')"><i data-lucide="file-cog"></i>ETAP</div>
     <div class="ni" data-s="licencas" onclick="go('licencas')"><i data-lucide="badge-check"></i>Licenças &amp; Alvarás</div>
     <div class="ni" data-s="financeiro" onclick="go('financeiro')"><i data-lucide="dollar-sign"></i>Financeiro</div>
     <div class="ni" data-s="contatos" onclick="go('contatos')"><i data-lucide="phone"></i>Contatos SEEDUC</div>
@@ -285,6 +305,8 @@ if(!DB.contacts)DB.contacts=[];
 if(!DB.financeiro)DB.financeiro=[];
 if(!DB.tarefas)DB.tarefas=[];
 if(!DB.arquivos)DB.arquivos=[];
+if(!DB.etaps)DB.etaps=[];
+if(!DB.auditorias)DB.auditorias=[];
 if(!DB.tipos_processo)DB.tipos_processo=[
   'Autorização de Funcionamento','Renovação de Autorização','Renovação de Alvará',
   'Renovação — Licença Sanitária','AVCB — Corpo de Bombeiros','Laudo Técnico CREA',
@@ -343,7 +365,7 @@ const state={docsPage:1,docsF:{rede:'',status:'',tipo:'',q:''},
              tarefasF:{q:'',status:'',resp:'',prioridade:'',escola:''},tarefasPage:1,
              calYear:new Date().getFullYear(),calMonth:new Date().getMonth()};
 const TITLES={dashboard:'Dashboard',docs:'Documentos',processos:'Processos SEI',
-  tarefas:'Tarefas',escolas:'Escolas',licencas:'Licenças & Alvarás',financeiro:'Financeiro',
+  tarefas:'Tarefas',escolas:'Escolas',etap:'ETAP',licencas:'Licenças & Alvarás',financeiro:'Financeiro',
   contatos:'Contatos SEEDUC',calendario:'Calendário',auditoria:'Auditoria & Conformidade',
   relatorios:'Relatórios',config:'Configurações'};
 
@@ -356,9 +378,10 @@ function go(s){
 function render(){
   const el=document.getElementById('main-content');
   const map={dashboard:renderDashboard,docs:renderDocs,processos:renderProcessos,
-             tarefas:renderTarefas,escolas:renderEscolas,licencas:renderLicencas,
-             contatos:renderContatos,financeiro:renderFinanceiro,
-             calendario:renderCalendario,relatorios:renderRelatorios,config:renderConfig};
+             tarefas:renderTarefas,escolas:renderEscolas,etap:renderEtap,
+             licencas:renderLicencas,contatos:renderContatos,financeiro:renderFinanceiro,
+             calendario:renderCalendario,auditoria:renderAuditoria,
+             relatorios:renderRelatorios,config:renderConfig};
   el.innerHTML=(map[cur]||renderWIP)();
   lucide.createIcons();
   updateHeader();
@@ -501,8 +524,9 @@ function renderDocs(){
       <td onclick="openDocDetail(${d.id})" style="cursor:pointer"><div class="td-name">${esc(d.escola)}</div><div class="td-sub">${esc(d.rede)} · ${d.estado}</div></td>
       <td onclick="openDocDetail(${d.id})" style="cursor:pointer">${esc(d.tipo)}</td>
       <td><span class="st ${stClass(d._s)}">${statusLabel(d._s)}</span></td>
+      <td>${d.situacao?`<span class="sit sit-${d.situacao}">${{'em_elaboracao':'📝 Elaborando','protocolado':'📬 Protocolado','em_analise':'🔍 Em análise','exigencia':'⚠️ Exigência','aprovado':'✅ Aprovado','arquivado':'📁 Arquivado'}[d.situacao]||d.situacao}</span>`:'<span style="color:var(--muted);font-size:11px">—</span>'}</td>
+      <td style="font-size:11px;color:var(--muted)">${d.numero_protocolo?`<span style="font-size:10px">${esc(d.numero_protocolo)}</span>`:'—'}</td>
       <td>${fmtDate(d.data_vencimento)} ${dt}</td>
-      <td style="max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--muted);font-size:11px">${esc(d.observacoes||'—')}</td>
       <td><div class="act-btns">
         <button class="btn btn-sec btn-sm" onclick="openEditDoc(${d.id})"><i data-lucide="pencil" style="width:11px;height:11px"></i></button>
         <button class="btn btn-danger btn-sm" onclick="deleteDoc(${d.id})"><i data-lucide="trash-2" style="width:11px;height:11px"></i></button>
@@ -537,8 +561,8 @@ function renderDocs(){
     </select>
   </div>
   <div class="card tbl-wrap" style="padding:0">
-    <table><thead><tr><th>Escola / Rede</th><th>Tipo</th><th>Status</th><th>Vencimento</th><th>Observações</th><th></th></tr></thead>
-    <tbody>${rows||'<tr><td colspan="6"><div class="empty"><div class="empty-icon">📂</div><div class="empty-title">Nenhum documento encontrado</div></div></td></tr>'}</tbody></table>
+    <table><thead><tr><th>Escola / Rede</th><th>Tipo</th><th>Validade</th><th>Situação SEEDUC/SME</th><th>Protocolo</th><th>Vencimento</th><th></th></tr></thead>
+    <tbody>${rows||'<tr><td colspan="7"><div class="empty"><div class="empty-icon">📂</div><div class="empty-title">Nenhum documento encontrado</div></div></td></tr>'}</tbody></table>
   </div>
   <div class="pag"><div class="pag-info">Exibindo ${Math.min((p-1)*PG+1,tot)}–${Math.min(p*PG,tot)} de ${tot}</div>
     <div class="pag-btns">${pgBtns}</div></div>`;
@@ -577,7 +601,7 @@ function openEditDoc(id){
         ${tipos.map(t=>`<option value="${esc(t)}"${d.tipo===t?' selected':''}>${esc(t)}</option>`).join('')}
       </select></div>
     <div class="fr">
-      <div class="fg"><label>Status</label>
+      <div class="fg"><label>Validade</label>
         <select class="fi" id="ef-status">
           <option value="ok"${d.status==='ok'?' selected':''}>✅ OK</option>
           <option value="a_vencer"${d.status==='a_vencer'?' selected':''}>⚠️ A vencer</option>
@@ -588,6 +612,22 @@ function openEditDoc(id){
       <div class="fg"><label>Vencimento</label>
         <input type="date" class="fi" id="ef-data" value="${d.data_vencimento||''}"></div>
     </div>
+    <div class="fg"><label>Situação no Processo SEEDUC/SME</label>
+      <select class="fi" id="ef-situacao">
+        <option value=""${!d.situacao?' selected':''}>— Não aplicável / sem processo —</option>
+        <option value="em_elaboracao"${d.situacao==='em_elaboracao'?' selected':''}>📝 Em elaboração</option>
+        <option value="protocolado"${d.situacao==='protocolado'?' selected':''}>📬 Protocolado</option>
+        <option value="em_analise"${d.situacao==='em_analise'?' selected':''}>🔍 Em análise pela SEC</option>
+        <option value="exigencia"${d.situacao==='exigencia'?' selected':''}>⚠️ Exigência pendente</option>
+        <option value="aprovado"${d.situacao==='aprovado'?' selected':''}>✅ Aprovado</option>
+        <option value="arquivado"${d.situacao==='arquivado'?' selected':''}>📁 Arquivado</option>
+      </select></div>
+    <div class="fr">
+      <div class="fg"><label>Número de Protocolo</label>
+        <input type="text" class="fi" id="ef-protocolo" value="${esc(d.numero_protocolo||'')}" placeholder="Ex: SEI-030001/001234/2025"></div>
+      <div class="fg"><label>Data de Protocolo</label>
+        <input type="date" class="fi" id="ef-dt-protocolo" value="${d.data_protocolo||''}"></div>
+    </div>
     <div class="fg"><label>Observações</label>
       <textarea class="fi" id="ef-obs" rows="3">${esc(d.observacoes||'')}</textarea></div>`,
     `<button class="btn btn-sec" onclick="closeModal()">Cancelar</button>
@@ -595,15 +635,43 @@ function openEditDoc(id){
   );
 }
 
+const RENEWAL_MONTHS={'Licença Sanitária':12,'Alvará de Funcionamento':12,'Vigilância Sanitária':12,
+  'AVCB / Bombeiros':24,'Corpo de Bombeiros':24,'Certidão Negativa':6,
+  'PAA':0,'ETAP':0,'Habite-se':0,'PPP':12,'Regimento Interno':24,
+  'Ato Autorizativo - Sec. Educação':0};
+
 function saveDoc(id){
   const tipo=document.getElementById('ef-tipo').value;
   const status=document.getElementById('ef-status').value;
   const data=document.getElementById('ef-data').value;
   const obs=document.getElementById('ef-obs').value.trim();
+  const situacao=document.getElementById('ef-situacao').value;
+  const protocolo=document.getElementById('ef-protocolo').value.trim();
+  const dtProto=document.getElementById('ef-dt-protocolo').value;
   if(!tipo){showToast('Selecione o tipo de documento','error');return;}
   const idx=DB.docs.findIndex(x=>x.id===id);
-  if(idx>=0){Object.assign(DB.docs[idx],{tipo,status,data_vencimento:data||null,observacoes:obs||null});}
-  save();closeModal();render();showToast('Documento salvo com sucesso!');
+  if(idx>=0){
+    const prev=DB.docs[idx];
+    Object.assign(DB.docs[idx],{tipo,status,data_vencimento:data||null,observacoes:obs||null,
+      situacao:situacao||null,numero_protocolo:protocolo||null,data_protocolo:dtProto||null});
+    // Renovação automática: se documento marcado ok/aprovado com vencimento
+    const meses=RENEWAL_MONTHS[tipo];
+    if(meses&&meses>0&&data&&(status==='ok')&&prev.status!=='ok'){
+      const venc=new Date(data);venc.setMonth(venc.getMonth()-2); // alerta 2 meses antes
+      const prazoISO=venc.toISOString().split('T')[0];
+      const escola=DB.docs[idx].escola;
+      const jaExiste=DB.tarefas.some(t=>t.titulo&&t.titulo.includes('Renovar')&&t.titulo.includes(tipo)&&t.escola===escola&&t.status==='pendente');
+      if(!jaExiste){
+        DB.tarefas.push({id:nextId(DB.tarefas),titulo:`Renovar ${tipo}`,
+          descricao:`Iniciar processo de renovação — vencimento em ${fmtDate(data)}`,
+          responsavel:DB.usuarios[0]?.nome||null,escola,
+          categoria:'Alvará/Licença',prioridade:'media',prazo:prazoISO,
+          status:'pendente',criada_em:todayISO()});
+        showToast(`✅ Tarefa de renovação criada automaticamente para ${fmtDate(data)}!`);
+      }
+    }
+  }
+  save();closeModal();render();showToast('Documento salvo!');
 }
 
 function openNewDoc(){
@@ -2310,6 +2378,537 @@ function showToast(msg,type='success'){
   document.getElementById('toasts').prepend(el);
   lucide.createIcons();
   setTimeout(()=>{const t=document.getElementById(id);if(t)t.remove();},3500);
+}
+
+// ── AUDITORIA ─────────────────────────────────────────────────────────────────
+const AUDIT_TEMPLATE=[
+  {cat:'Licenciamento Municipal',items:['Alvará de Funcionamento vigente','Habite-se apresentado','AVCB Corpo de Bombeiros vigente']},
+  {cat:'Vigilância Sanitária',items:['Licença Sanitária vigente','Manual de Boas Práticas','Certificado de desinsetização atualizado']},
+  {cat:'Secretaria de Educação (SEEDUC/SME)',items:['Ato Autorizativo publicado no DO','PAA aprovado pela SEC','ETAP aprovada pela SEC','Regimento Interno aprovado','PPP atualizado','Código INEP cadastrado']},
+  {cat:'CREA / Laudos Técnicos',items:['Laudo de instalações elétricas (ART)','Laudo de acessibilidade NBR 9050','ART do responsável técnico registrada']},
+  {cat:'Documentação Corporativa',items:['CNPJ ativo e atualizado','Certidão Negativa Federal','Certidão Negativa Estadual','Certidão Negativa Municipal']},
+];
+
+function renderAuditoria(){
+  const auditorias=[...DB.auditorias].sort((a,b)=>(b.data||'').localeCompare(a.data||''));
+  const escolas=[...DB.schools].sort((a,b)=>a.nome.localeCompare(b.nome));
+
+  const rows=auditorias.map(a=>{
+    const conf=a.items?a.items.filter(i=>i.resultado==='conforme').length:0;
+    const nc=a.items?a.items.filter(i=>i.resultado==='nao_conforme').length:0;
+    const total=a.items?a.items.filter(i=>i.resultado&&i.resultado!=='nao_aplicavel').length:0;
+    const pct=total?Math.round(conf/total*100):0;
+    return`<tr>
+      <td><div class="td-name">${esc(a.escola)}</div><div class="td-sub">${esc(a.rede||'')}</div></td>
+      <td style="font-size:12px">${fmtDate(a.data)}</td>
+      <td style="font-size:12px">${esc(a.auditor||'—')}</td>
+      <td>
+        <div style="display:flex;align-items:center;gap:8px">
+          <div style="width:60px;height:6px;background:var(--sec);border-radius:3px;overflow:hidden">
+            <div style="height:100%;width:${pct}%;background:${pct>=80?'var(--green)':pct>=50?'var(--yellow)':'var(--red)'};border-radius:3px"></div>
+          </div>
+          <span style="font-size:11px;font-weight:700;color:${pct>=80?'var(--green)':pct>=50?'var(--yellow)':'var(--red)'}">${pct}%</span>
+          ${nc>0?`<span class="badge danger">${nc} NC</span>`:''}
+        </div>
+      </td>
+      <td><span class="badge ${a.status==='concluida'?'ok':'warn'}">${a.status==='concluida'?'Concluída':'Em andamento'}</span></td>
+      <td><div class="act-btns">
+        <button class="btn btn-pri btn-sm" onclick="openAuditDetail(${a.id})">Ver</button>
+        <button class="btn btn-danger btn-sm" onclick="deleteAuditoria(${a.id})"><i data-lucide="trash-2" style="width:11px;height:11px"></i></button>
+      </div></td>
+    </tr>`;
+  }).join('');
+
+  return`
+  <div class="sh">
+    <div><div class="sh-title">Auditoria & Conformidade</div>
+      <div class="sh-sub">Vistorias internas de documentação por escola</div></div>
+    <button class="btn btn-pri" onclick="openNovaAuditoria()">
+      <i data-lucide="clipboard-check" style="width:14px;height:14px"></i>Nova Auditoria</button>
+  </div>
+  ${auditorias.length===0?`
+  <div class="card" style="padding:60px 30px;text-align:center">
+    <div style="font-size:48px;margin-bottom:14px">📋</div>
+    <div style="font-size:17px;font-weight:700;margin-bottom:8px">Nenhuma auditoria realizada</div>
+    <div style="color:var(--muted);font-size:14px;max-width:400px;margin:0 auto 20px">
+      Realize vistorias internas para verificar a situação documental de cada escola antes de protocolar na SEEDUC/SME.
+    </div>
+    <button class="btn btn-pri" onclick="openNovaAuditoria()">
+      <i data-lucide="plus" style="width:14px;height:14px"></i>Iniciar primeira auditoria</button>
+  </div>`:`
+  <div class="card tbl-wrap" style="padding:0">
+    <table><thead><tr><th>Escola</th><th>Data</th><th>Auditor</th><th>Conformidade</th><th>Status</th><th></th></tr></thead>
+    <tbody>${rows}</tbody></table>
+  </div>`}`;
+}
+
+function openNovaAuditoria(){
+  const escolas=[...DB.schools].sort((a,b)=>a.nome.localeCompare(b.nome));
+  showModal('Nova Auditoria',`
+    <div class="fr">
+      <div class="fg"><label>Escola *</label>
+        <select class="fi" id="aud-escola">
+          <option value="">Selecione...</option>
+          ${escolas.map(s=>`<option value="${s.id}" data-nome="${esc(s.nome)}" data-rede="${esc(s.rede)}">${esc(s.nome)} (${esc(s.rede)})</option>`).join('')}
+        </select></div>
+      <div class="fg"><label>Data *</label>
+        <input type="date" class="fi" id="aud-data" value="${todayISO()}"></div>
+    </div>
+    <div class="fg"><label>Auditor</label>
+      <select class="fi" id="aud-auditor">
+        ${DB.usuarios.filter(u=>u.ativo).map(u=>`<option value="${esc(u.nome)}">${esc(u.nome)}</option>`).join('')}
+      </select></div>
+    <div class="fg"><label>Observação Geral</label>
+      <textarea class="fi" id="aud-obs" rows="2"></textarea></div>`,
+    `<button class="btn btn-sec" onclick="closeModal()">Cancelar</button>
+     <button class="btn btn-pri" onclick="criarAuditoria()"><i data-lucide="play" style="width:13px;height:13px"></i>Iniciar</button>`
+  );
+}
+
+function criarAuditoria(){
+  const selEsc=document.getElementById('aud-escola');
+  const escolaId=parseInt(selEsc.value)||null;
+  const selOpt=selEsc.options[selEsc.selectedIndex];
+  if(!escolaId){showToast('Selecione uma escola','error');return;}
+  const escola=selOpt.dataset.nome;
+  const rede=selOpt.dataset.rede;
+  const data=document.getElementById('aud-data').value;
+  const auditor=document.getElementById('aud-auditor').value;
+  const obs=document.getElementById('aud-obs').value.trim();
+  const items=[];
+  AUDIT_TEMPLATE.forEach(cat=>{
+    cat.items.forEach(item=>{
+      items.push({id:Date.now()+Math.random(),cat:cat.cat,item,resultado:null,obs:''});
+    });
+  });
+  const id=nextId(DB.auditorias);
+  DB.auditorias.push({id,escola_id:escolaId,escola,rede,data,auditor,status:'em_andamento',items,obs_geral:obs||null});
+  save();closeModal();openAuditDetail(id);
+}
+
+function openAuditDetail(id){
+  const a=DB.auditorias.find(x=>x.id===id);if(!a)return;
+  const conf=a.items.filter(i=>i.resultado==='conforme').length;
+  const nc=a.items.filter(i=>i.resultado==='nao_conforme').length;
+  const na=a.items.filter(i=>i.resultado==='nao_aplicavel').length;
+  const total=a.items.filter(i=>i.resultado&&i.resultado!=='nao_aplicavel').length;
+  const pct=total?Math.round(conf/total*100):0;
+
+  const cats=[...new Set(a.items.map(i=>i.cat))];
+  const itemsHtml=cats.map(cat=>`
+    <div style="margin-bottom:16px">
+      <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);margin-bottom:8px;padding-bottom:4px;border-bottom:2px solid var(--border)">${esc(cat)}</div>
+      ${a.items.filter(i=>i.cat===cat).map(item=>`
+        <div class="aud-item">
+          <div style="flex:1;font-size:13px">${esc(item.item)}</div>
+          <div class="aud-resultado">
+            <button class="aud-btn${item.resultado==='conforme'?' conforme':''}" onclick="setAudItem(${id},'${item.id}','conforme')">✅ Conforme</button>
+            <button class="aud-btn${item.resultado==='nao_conforme'?' nao_conforme':''}" onclick="setAudItem(${id},'${item.id}','nao_conforme')">❌ Não conforme</button>
+            <button class="aud-btn${item.resultado==='nao_aplicavel'?' nao_aplicavel':''}" onclick="setAudItem(${id},'${item.id}','nao_aplicavel')">— N/A</button>
+          </div>
+        </div>
+        ${item.resultado==='nao_conforme'?`<div style="margin-left:0;margin-bottom:8px">
+          <input type="text" class="fi" placeholder="Observação sobre a não conformidade..."
+                 value="${esc(item.obs||'')}" style="font-size:11px"
+                 onchange="setAudItemObs(${id},'${item.id}',this.value)"></div>`:''}`
+      ).join('')}
+    </div>`).join('');
+
+  showModal(`Auditoria — ${a.escola}`,`
+    <div style="display:flex;gap:12px;margin-bottom:16px">
+      <div class="card" style="padding:12px;flex:1;text-align:center">
+        <div style="font-size:24px;font-weight:800;color:${pct>=80?'var(--green)':pct>=50?'var(--yellow)':'var(--red)'}">${pct}%</div>
+        <div style="font-size:11px;color:var(--muted)">Conformidade</div>
+      </div>
+      <div class="card" style="padding:12px;flex:1;text-align:center">
+        <div style="font-size:24px;font-weight:800;color:var(--green)">${conf}</div>
+        <div style="font-size:11px;color:var(--muted)">Conformes</div>
+      </div>
+      <div class="card" style="padding:12px;flex:1;text-align:center">
+        <div style="font-size:24px;font-weight:800;color:var(--red)">${nc}</div>
+        <div style="font-size:11px;color:var(--muted)">Não conformes</div>
+      </div>
+    </div>
+    <div style="font-size:12px;color:var(--muted);margin-bottom:14px">
+      ${esc(a.escola)} · ${fmtDate(a.data)} · Auditor: ${esc(a.auditor||'—')}
+    </div>
+    ${itemsHtml}`,
+    `<button class="btn btn-sec" onclick="closeModal()">Fechar</button>
+     ${a.status==='em_andamento'?`<button class="btn btn-pri" onclick="concluirAuditoria(${id})"><i data-lucide="check" style="width:13px;height:13px"></i>Concluir</button>`:''}
+     <button class="btn btn-sec" onclick="exportAuditoria(${id})"><i data-lucide="download" style="width:13px;height:13px"></i>Exportar</button>`
+  ,'modal-lg');
+}
+
+function setAudItem(audId,itemId,resultado){
+  const a=DB.auditorias.find(x=>x.id===audId);if(!a)return;
+  const item=a.items.find(i=>String(i.id)===String(itemId));if(!item)return;
+  item.resultado=resultado;save();openAuditDetail(audId);
+}
+function setAudItemObs(audId,itemId,obs){
+  const a=DB.auditorias.find(x=>x.id===audId);if(!a)return;
+  const item=a.items.find(i=>String(i.id)===String(itemId));if(item)item.obs=obs;save();
+}
+function concluirAuditoria(id){
+  const a=DB.auditorias.find(x=>x.id===id);if(!a)return;
+  const semResultado=a.items.filter(i=>!i.resultado).length;
+  if(semResultado>0&&!confirm(`${semResultado} item(ns) sem resultado. Concluir assim mesmo?`))return;
+  a.status='concluida';
+  const nc=a.items.filter(i=>i.resultado==='nao_conforme');
+  if(nc.length>0){
+    nc.forEach(item=>{
+      DB.tarefas.push({id:nextId(DB.tarefas),titulo:`[Auditoria] ${item.item}`,
+        descricao:item.obs||`Não conformidade identificada em auditoria de ${fmtDate(a.data)}`,
+        responsavel:DB.usuarios[0]?.nome||null,escola:a.escola,
+        categoria:'Auditoria',prioridade:'alta',prazo:null,status:'pendente',criada_em:todayISO()});
+    });
+    showToast(`${nc.length} tarefa(s) criada(s) para as não conformidades!`);
+  }
+  save();closeModal();render();showToast('Auditoria concluída!');
+}
+function deleteAuditoria(id){
+  if(!confirm('Excluir esta auditoria?'))return;
+  DB.auditorias=DB.auditorias.filter(x=>x.id!==id);
+  save();render();showToast('Auditoria excluída','error');
+}
+function exportAuditoria(id){
+  const a=DB.auditorias.find(x=>x.id===id);if(!a)return;
+  const conf=a.items.filter(i=>i.resultado==='conforme').length;
+  const nc=a.items.filter(i=>i.resultado==='nao_conforme').length;
+  const total=a.items.filter(i=>i.resultado&&i.resultado!=='nao_aplicavel').length;
+  const pct=total?Math.round(conf/total*100):0;
+  const rows=[
+    [`RELATÓRIO DE AUDITORIA — ${a.escola}`],[`Data: ${fmtDate(a.data)}`],[`Auditor: ${a.auditor||'—'}`],
+    [`Conformidade: ${pct}% (${conf} conformes / ${nc} não conformes)`],[],
+    ['Categoria','Item','Resultado','Observação'],
+    ...a.items.map(i=>[i.cat,i.item,{conforme:'Conforme',nao_conforme:'Não Conforme',nao_aplicavel:'N/A'}[i.resultado]||'—',i.obs||''])
+  ];
+  const csv='﻿'+rows.map(r=>r.map(c=>`"${String(c||'').replace(/"/g,'""')}"`).join(';')).join('\r\n');
+  const blob=new Blob([csv],{type:'text/csv;charset=utf-8;'});
+  const link=document.createElement('a');link.href=URL.createObjectURL(blob);
+  link.download=`auditoria_${a.escola.replace(/[^a-z0-9]/gi,'_')}_${a.data}.csv`;link.click();
+  showToast('Auditoria exportada!');
+}
+
+// ── ETAP ───────────────────────────────────────────────────────────────────────
+const ETAP_STATUS_MAP={
+  pendente:{label:'⏳ Pendente',color:'#94a3b8',bg:'#F1F5F9'},
+  em_elaboracao:{label:'📝 Em elaboração',color:'#4B5563',bg:'#F3F4F6'},
+  protocolado:{label:'📬 Protocolado',color:'#1D4ED8',bg:'#EFF6FF'},
+  em_analise:{label:'🔍 Em análise',color:'#92400E',bg:'#FEF3C7'},
+  exigencia:{label:'⚠️ Exigência',color:'#991B1B',bg:'#FEE2E2'},
+  aprovado:{label:'✅ Aprovado',color:'#15803D',bg:'#DCFCE7'},
+};
+
+function renderEtap(){
+  const f=state.escolasF||{rede:'',q:''};
+  const redes=[...new Set(DB.schools.map(s=>s.rede))].sort();
+  let escolas=[...DB.schools];
+  if(f.rede)escolas=escolas.filter(s=>s.rede===f.rede);
+  if(f.q){const q=f.q.toLowerCase();escolas=escolas.filter(s=>s.nome.toLowerCase().includes(q));}
+
+  const cards=escolas.map(s=>{
+    const etap=DB.etaps.find(e=>e.escola_id===s.id);
+    const st=etap?ETAP_STATUS_MAP[etap.status]||ETAP_STATUS_MAP.pendente:ETAP_STATUS_MAP.pendente;
+    const membros=etap?etap.membros.length:0;
+    const dos_=etap?etap.publicacoes_do.length:0;
+    return`<div class="card" style="padding:16px;cursor:pointer;transition:transform .15s" onclick="openEtapDetail(${s.id})"
+               onmouseover="this.style.transform='translateY(-2px)'" onmouseout="this.style.transform=''">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px">
+        <div style="font-size:14px;font-weight:700">${esc(s.nome)}</div>
+        <span style="padding:3px 10px;border-radius:20px;font-size:10px;font-weight:700;
+                     background:${st.bg};color:${st.color}">${st.label}</span>
+      </div>
+      <div style="font-size:11px;color:var(--muted);margin-bottom:8px">${esc(s.rede)} · ${s.estado}</div>
+      ${etap&&etap.numero_protocolo?`<div style="font-size:10px;color:var(--muted);margin-bottom:6px">📬 ${esc(etap.numero_protocolo)}</div>`:''}
+      <div style="display:flex;gap:12px;font-size:11px;color:var(--muted)">
+        <span>👥 ${membros} membro(s)</span>
+        <span>📰 ${dos_} pub. DO</span>
+        ${etap&&etap.data_aprovacao?`<span style="color:var(--green);font-weight:600">✅ Aprovada em ${fmtDate(etap.data_aprovacao)}</span>`:''}
+      </div>
+    </div>`;
+  }).join('');
+
+  return`
+  <div class="sh">
+    <div><div class="sh-title">ETAP — Estudo Técnico de Adequação de Projeto</div>
+      <div class="sh-sub">Acompanhamento das ETAPs por unidade escolar · ${DB.etaps.filter(e=>e.status==='aprovado').length} aprovadas · ${DB.etaps.filter(e=>e.status==='em_analise').length} em análise</div></div>
+  </div>
+  <div class="filters">
+    <div class="search"><i data-lucide="search" style="width:14px;height:14px;color:var(--muted)"></i>
+      <input placeholder="Buscar escola..." oninput="state.escolasF={...state.escolasF,q:this.value};render()"></div>
+    <select class="fs" onchange="state.escolasF={...state.escolasF,rede:this.value};render()">
+      <option value="">Todas as redes</option>
+      ${redes.map(r=>`<option value="${esc(r)}"${f.rede===r?' selected':''}>${esc(r)}</option>`).join('')}
+    </select>
+  </div>
+  <div class="sc-grid">${cards||'<div class="empty"><div class="empty-icon">📐</div><div class="empty-title">Nenhuma escola encontrada</div></div>'}</div>`;
+}
+
+function openEtapDetail(escolaId){
+  const s=DB.schools.find(x=>x.id===escolaId);if(!s)return;
+  let etap=DB.etaps.find(e=>e.escola_id===escolaId);
+  if(!etap){
+    etap={id:nextId(DB.etaps),escola_id:escolaId,escola:s.nome,rede:s.rede,
+      versao:'1',data_elaboracao:null,data_protocolo:null,numero_protocolo:null,
+      status:'pendente',data_aprovacao:null,obs:null,membros:[],publicacoes_do:[],processos_vinculados:[]};
+    DB.etaps.push(etap);save();
+  }
+  const st=ETAP_STATUS_MAP[etap.status]||ETAP_STATUS_MAP.pendente;
+  const membrosHtml=etap.membros.length?etap.membros.map(m=>`
+    <div class="etap-membro">
+      <div class="ct-av" style="width:36px;height:36px;font-size:12px;background:${avatarColor(m.nome)};flex-shrink:0">
+        ${(m.nome||'?').split(' ').map(w=>w[0]).slice(0,2).join('').toUpperCase()}</div>
+      <div style="flex:1;min-width:0">
+        <div style="font-size:13px;font-weight:600">${esc(m.nome)}</div>
+        <div style="font-size:11px;color:var(--muted)">${esc(m.cargo||'')}${m.registro?` · ${esc(m.registro)}`:''}</div>
+        <div style="font-size:11px;color:var(--muted)">${m.telefone?`📞 ${esc(m.telefone)}&nbsp;&nbsp;`:''}${m.email?`✉️ ${esc(m.email)}`:''}</div>
+        ${m.art?`<div style="font-size:10px;background:var(--sec);padding:2px 6px;border-radius:4px;margin-top:4px;display:inline-block">ART/RRT: ${esc(m.art)}</div>`:''}
+      </div>
+      <div style="display:flex;gap:4px">
+        <button class="btn btn-sec btn-sm" onclick="openEditMembroEtap(${escolaId},${m.id})"><i data-lucide="pencil" style="width:11px;height:11px"></i></button>
+        <button class="btn btn-danger btn-sm" onclick="deleteMembroEtap(${escolaId},${m.id})"><i data-lucide="trash-2" style="width:11px;height:11px"></i></button>
+      </div>
+    </div>`).join('')
+    :`<div style="color:var(--muted);font-size:12px;padding:10px 0">Nenhum membro cadastrado.</div>`;
+
+  const dosHtml=etap.publicacoes_do.length?etap.publicacoes_do.map(d=>`
+    <div class="etap-do-row">
+      <div style="flex:1">
+        <div style="font-size:13px;font-weight:600">${esc(d.tipo||'Publicação')}</div>
+        <div style="font-size:11px;color:var(--muted)">DO nº ${esc(d.numero_do||'—')} · ${fmtDate(d.data_publicacao)}${d.pagina?` · Pág. ${esc(d.pagina)}`:''}</div>
+        ${d.link?`<a href="${esc(d.link)}" target="_blank" style="font-size:10px;color:var(--acc)">🔗 Ver publicação</a>`:''}
+        ${d.obs?`<div style="font-size:10px;color:var(--muted);margin-top:2px">${esc(d.obs)}</div>`:''}
+      </div>
+      <div style="display:flex;gap:4px">
+        <button class="btn btn-sec btn-sm" onclick="openEditDoEtap(${escolaId},${d.id})"><i data-lucide="pencil" style="width:11px;height:11px"></i></button>
+        <button class="btn btn-danger btn-sm" onclick="deleteDoEtap(${escolaId},${d.id})"><i data-lucide="trash-2" style="width:11px;height:11px"></i></button>
+      </div>
+    </div>`).join('')
+    :`<div style="color:var(--muted);font-size:12px;padding:10px 0">Nenhuma publicação cadastrada.</div>`;
+
+  const procsVinc=DB.procs.filter(p=>etap.processos_vinculados&&etap.processos_vinculados.includes(p.id));
+  const procsHtml=procsVinc.length?procsVinc.map(p=>`
+    <div style="padding:8px 0;border-bottom:1px solid var(--border)">
+      <div style="font-size:12px;font-weight:500">${esc(p.numero)}</div>
+      <div style="display:flex;align-items:center;gap:8px;margin-top:3px">
+        <span class="proc-status ps-${p.status}" style="font-size:10px">${statusLabel(p.status)}</span>
+        <span style="font-size:11px;color:var(--muted)">${esc(p.prazo||'—')}</span>
+      </div>
+    </div>`).join('')
+    :`<div style="color:var(--muted);font-size:12px;padding:6px 0">Nenhum processo vinculado.</div>`;
+
+  showModal(`ETAP — ${s.nome}`,`
+    <!-- Status e dados principais -->
+    <div style="background:${st.bg};border-radius:10px;padding:14px;margin-bottom:16px">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
+        <span style="font-size:13px;font-weight:700;color:${st.color}">${st.label}</span>
+        <button class="btn btn-sec btn-sm" onclick="openEditEtap(${escolaId})"><i data-lucide="pencil" style="width:11px;height:11px"></i>Editar ETAP</button>
+      </div>
+      <div class="fr" style="gap:10px">
+        <div><label style="font-size:10px">Versão</label><div style="font-weight:700">${esc(etap.versao||'—')}</div></div>
+        <div><label style="font-size:10px">Elaboração</label><div>${fmtDate(etap.data_elaboracao)}</div></div>
+        <div><label style="font-size:10px">Protocolo</label><div>${fmtDate(etap.data_protocolo)}</div></div>
+        <div><label style="font-size:10px">Aprovação</label><div style="color:${etap.data_aprovacao?'var(--green)':'var(--muted)'}">${fmtDate(etap.data_aprovacao)}</div></div>
+      </div>
+      ${etap.numero_protocolo?`<div style="margin-top:8px;font-size:11px">📬 Protocolo: <strong>${esc(etap.numero_protocolo)}</strong></div>`:''}
+      ${etap.obs?`<div style="margin-top:6px;font-size:11px;color:var(--muted)">${esc(etap.obs)}</div>`:''}
+    </div>
+
+    <!-- Membros -->
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+      <div style="font-weight:700;font-size:13px">👥 Equipe / Membros</div>
+      <button class="btn btn-pri btn-sm" onclick="openEditMembroEtap(${escolaId},null)">
+        <i data-lucide="plus" style="width:11px;height:11px"></i>Novo Membro</button>
+    </div>
+    ${membrosHtml}
+
+    <div class="divider"></div>
+
+    <!-- Publicações DO -->
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+      <div style="font-weight:700;font-size:13px">📰 Publicações no Diário Oficial</div>
+      <button class="btn btn-pri btn-sm" onclick="openEditDoEtap(${escolaId},null)">
+        <i data-lucide="plus" style="width:11px;height:11px"></i>Nova Publicação</button>
+    </div>
+    ${dosHtml}
+
+    <div class="divider"></div>
+
+    <!-- Processos vinculados -->
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+      <div style="font-weight:700;font-size:13px">📋 Processos SEI Vinculados</div>
+      <button class="btn btn-sec btn-sm" onclick="openVincularProcesso(${escolaId})">
+        <i data-lucide="link" style="width:11px;height:11px"></i>Vincular</button>
+    </div>
+    ${procsHtml}`,
+    `<button class="btn btn-sec" onclick="closeModal()">Fechar</button>`,
+  'modal-lg');
+}
+
+function openEditEtap(escolaId){
+  const etap=DB.etaps.find(e=>e.escola_id===escolaId)||{};
+  showModal('Editar ETAP',`
+    <div class="fr">
+      <div class="fg"><label>Versão</label>
+        <input type="text" class="fi" id="etap-ver" value="${esc(etap.versao||'1')}" placeholder="Ex: 1, 2, 3..."></div>
+      <div class="fg"><label>Status</label>
+        <select class="fi" id="etap-st">
+          ${Object.entries(ETAP_STATUS_MAP).map(([k,v])=>`<option value="${k}"${etap.status===k?' selected':''}>${v.label}</option>`).join('')}
+        </select></div>
+    </div>
+    <div class="fr">
+      <div class="fg"><label>Data de Elaboração</label>
+        <input type="date" class="fi" id="etap-elab" value="${etap.data_elaboracao||''}"></div>
+      <div class="fg"><label>Data de Protocolo</label>
+        <input type="date" class="fi" id="etap-proto" value="${etap.data_protocolo||''}"></div>
+    </div>
+    <div class="fg"><label>Número do Protocolo SEI</label>
+      <input type="text" class="fi" id="etap-num-proto" value="${esc(etap.numero_protocolo||'')}" placeholder="Ex: SEI-030001/001234/2025"></div>
+    <div class="fg"><label>Data de Aprovação</label>
+      <input type="date" class="fi" id="etap-aprov" value="${etap.data_aprovacao||''}"></div>
+    <div class="fg"><label>Observações</label>
+      <textarea class="fi" id="etap-obs" rows="2">${esc(etap.obs||'')}</textarea></div>`,
+    `<button class="btn btn-sec" onclick="closeModal()">Cancelar</button>
+     <button class="btn btn-pri" onclick="saveEtap(${escolaId})"><i data-lucide="save" style="width:13px;height:13px"></i>Salvar</button>`
+  );
+}
+
+function saveEtap(escolaId){
+  const etap=DB.etaps.find(e=>e.escola_id===escolaId);if(!etap)return;
+  Object.assign(etap,{
+    versao:document.getElementById('etap-ver').value.trim()||'1',
+    status:document.getElementById('etap-st').value,
+    data_elaboracao:document.getElementById('etap-elab').value||null,
+    data_protocolo:document.getElementById('etap-proto').value||null,
+    numero_protocolo:document.getElementById('etap-num-proto').value.trim()||null,
+    data_aprovacao:document.getElementById('etap-aprov').value||null,
+    obs:document.getElementById('etap-obs').value.trim()||null,
+  });
+  save();closeModal();openEtapDetail(escolaId);showToast('ETAP salva!');
+}
+
+function openEditMembroEtap(escolaId,membroId){
+  const etap=DB.etaps.find(e=>e.escola_id===escolaId);if(!etap)return;
+  const m=membroId?etap.membros.find(x=>x.id===membroId)||{}:{};
+  showModal(membroId?'Editar Membro':'Novo Membro da Equipe ETAP',`
+    <div class="fr">
+      <div class="fg"><label>Nome completo *</label>
+        <input type="text" class="fi" id="mb-nome" value="${esc(m.nome||'')}" placeholder="Ex: Eduardo Martins"></div>
+      <div class="fg"><label>Cargo / Função *</label>
+        <input type="text" class="fi" id="mb-cargo" value="${esc(m.cargo||'')}" placeholder="Ex: Engenheiro Responsável, Arquiteto..."></div>
+    </div>
+    <div class="fr">
+      <div class="fg"><label>Registro profissional (CREA/CAU)</label>
+        <input type="text" class="fi" id="mb-reg" value="${esc(m.registro||'')}" placeholder="Ex: CREA 12345-SP"></div>
+      <div class="fg"><label>Número ART/RRT</label>
+        <input type="text" class="fi" id="mb-art" value="${esc(m.art||'')}" placeholder="Nº da ART ou RRT"></div>
+    </div>
+    <div class="fr">
+      <div class="fg"><label>Telefone</label>
+        <input type="tel" class="fi" id="mb-tel" value="${esc(m.telefone||'')}" placeholder="(21) 99999-0000"></div>
+      <div class="fg"><label>E-mail</label>
+        <input type="email" class="fi" id="mb-email" value="${esc(m.email||'')}" placeholder="nome@empresa.com.br"></div>
+    </div>
+    <div class="fg"><label>Observações</label>
+      <textarea class="fi" id="mb-obs" rows="2">${esc(m.obs||'')}</textarea></div>`,
+    `<button class="btn btn-sec" onclick="closeModal()">Cancelar</button>
+     <button class="btn btn-pri" onclick="saveMembroEtap(${escolaId},${membroId||0})"><i data-lucide="save" style="width:13px;height:13px"></i>Salvar</button>`
+  );
+}
+function saveMembroEtap(escolaId,membroId){
+  const etap=DB.etaps.find(e=>e.escola_id===escolaId);if(!etap)return;
+  const nome=document.getElementById('mb-nome').value.trim();
+  if(!nome){showToast('Nome é obrigatório','error');return;}
+  const rec={nome,cargo:document.getElementById('mb-cargo').value.trim(),
+    registro:document.getElementById('mb-reg').value.trim(),art:document.getElementById('mb-art').value.trim(),
+    telefone:document.getElementById('mb-tel').value.trim(),email:document.getElementById('mb-email').value.trim(),
+    obs:document.getElementById('mb-obs').value.trim()};
+  if(membroId>0){const idx=etap.membros.findIndex(x=>x.id===membroId);if(idx>=0)Object.assign(etap.membros[idx],rec);}
+  else etap.membros.push({id:nextId(etap.membros),...rec});
+  save();closeModal();openEtapDetail(escolaId);showToast('Membro salvo!');
+}
+function deleteMembroEtap(escolaId,membroId){
+  const etap=DB.etaps.find(e=>e.escola_id===escolaId);if(!etap)return;
+  if(!confirm('Excluir membro?'))return;
+  etap.membros=etap.membros.filter(x=>x.id!==membroId);
+  save();openEtapDetail(escolaId);showToast('Membro removido','error');
+}
+
+function openEditDoEtap(escolaId,doId){
+  const etap=DB.etaps.find(e=>e.escola_id===escolaId);if(!etap)return;
+  const d=doId?etap.publicacoes_do.find(x=>x.id===doId)||{}:{};
+  const tipos=['Autorização de Funcionamento','Renovação de Autorização','Transferência de Mantenedora',
+    'Recredenciamento','Suspensão','Cassação','Ato de Credenciamento','Outro'];
+  showModal(doId?'Editar Publicação DO':'Nova Publicação no Diário Oficial',`
+    <div class="fr">
+      <div class="fg"><label>Tipo de Publicação *</label>
+        <select class="fi" id="do-tipo">
+          <option value="">Selecione...</option>
+          ${tipos.map(t=>`<option value="${t}"${d.tipo===t?' selected':''}>${t}</option>`).join('')}
+        </select></div>
+      <div class="fg"><label>Data de Publicação *</label>
+        <input type="date" class="fi" id="do-data" value="${d.data_publicacao||''}"></div>
+    </div>
+    <div class="fr">
+      <div class="fg"><label>Número / Edição do DO</label>
+        <input type="text" class="fi" id="do-num" value="${esc(d.numero_do||'')}" placeholder="Ex: DO 47.234"></div>
+      <div class="fg"><label>Página</label>
+        <input type="text" class="fi" id="do-pag" value="${esc(d.pagina||'')}" placeholder="Ex: 15"></div>
+    </div>
+    <div class="fg"><label>Link para o DO (opcional)</label>
+      <input type="text" class="fi" id="do-link" value="${esc(d.link||'')}" placeholder="https://..."></div>
+    <div class="fg"><label>Observações</label>
+      <textarea class="fi" id="do-obs" rows="2">${esc(d.obs||'')}</textarea></div>`,
+    `<button class="btn btn-sec" onclick="closeModal()">Cancelar</button>
+     <button class="btn btn-pri" onclick="saveDoEtap(${escolaId},${doId||0})"><i data-lucide="save" style="width:13px;height:13px"></i>Salvar</button>`
+  );
+}
+function saveDoEtap(escolaId,doId){
+  const etap=DB.etaps.find(e=>e.escola_id===escolaId);if(!etap)return;
+  const tipo=document.getElementById('do-tipo').value;
+  const data=document.getElementById('do-data').value;
+  if(!tipo||!data){showToast('Tipo e data são obrigatórios','error');return;}
+  const rec={tipo,data_publicacao:data,numero_do:document.getElementById('do-num').value.trim()||null,
+    pagina:document.getElementById('do-pag').value.trim()||null,
+    link:document.getElementById('do-link').value.trim()||null,
+    obs:document.getElementById('do-obs').value.trim()||null};
+  if(doId>0){const idx=etap.publicacoes_do.findIndex(x=>x.id===doId);if(idx>=0)Object.assign(etap.publicacoes_do[idx],rec);}
+  else etap.publicacoes_do.push({id:nextId(etap.publicacoes_do),...rec});
+  save();closeModal();openEtapDetail(escolaId);showToast('Publicação DO salva!');
+}
+function deleteDoEtap(escolaId,doId){
+  const etap=DB.etaps.find(e=>e.escola_id===escolaId);if(!etap)return;
+  if(!confirm('Excluir publicação?'))return;
+  etap.publicacoes_do=etap.publicacoes_do.filter(x=>x.id!==doId);
+  save();openEtapDetail(escolaId);showToast('Publicação removida','error');
+}
+function openVincularProcesso(escolaId){
+  const etap=DB.etaps.find(e=>e.escola_id===escolaId);if(!etap)return;
+  const escola=DB.schools.find(s=>s.id===escolaId);
+  const disponiveis=DB.procs.filter(p=>p.escola_id===escolaId||!p.escola_id);
+  const html=disponiveis.map(p=>{
+    const vinc=etap.processos_vinculados&&etap.processos_vinculados.includes(p.id);
+    return`<div style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--border)">
+      <input type="checkbox" ${vinc?'checked':''} id="pv-${p.id}" style="accent-color:var(--acc);width:16px;height:16px">
+      <div style="flex:1">
+        <div style="font-size:12px;font-weight:500">${esc(p.numero)}</div>
+        <div style="font-size:11px;color:var(--muted)">${esc(p.escola||'—')} · ${esc(p.prazo||'—')}</div>
+      </div>
+      <span class="proc-status ps-${p.status}" style="font-size:10px">${statusLabel(p.status)}</span>
+    </div>`;
+  }).join('')||'<div style="color:var(--muted);font-size:12px;padding:10px 0">Sem processos disponíveis.</div>';
+  showModal('Vincular Processos SEI à ETAP',
+    `<div>${html}</div>`,
+    `<button class="btn btn-sec" onclick="closeModal()">Cancelar</button>
+     <button class="btn btn-pri" onclick="salvarVinculosEtap(${escolaId})"><i data-lucide="save" style="width:13px;height:13px"></i>Salvar</button>`
+  );
+}
+function salvarVinculosEtap(escolaId){
+  const etap=DB.etaps.find(e=>e.escola_id===escolaId);if(!etap)return;
+  const checkboxes=document.querySelectorAll('[id^="pv-"]');
+  etap.processos_vinculados=[];
+  checkboxes.forEach(cb=>{if(cb.checked)etap.processos_vinculados.push(parseInt(cb.id.replace('pv-','')));});
+  save();closeModal();openEtapDetail(escolaId);showToast('Vínculos salvos!');
 }
 
 // ── RELATÓRIOS ────────────────────────────────────────────────────────────────
