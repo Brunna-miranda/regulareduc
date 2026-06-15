@@ -677,9 +677,12 @@ def build():
         '<div class="toasts" id="toasts"></div>\n<div id="modal-root"></div>\n<div id="drawer-root"></div>\n' + HTML_LOGIN_CLOSE
     )
 
-    # 5. Remover "go('dashboard');" do final do script e adicionar o JS do Supabase
-    # O script original termina com: go('dashboard');
-    html = html.replace("go('dashboard');\n\"\"\"", "// Supabase init handled below\n\"\"\"")
+    # 5. Substituir a seção INIT — remover go('dashboard'); e colocar checkAuth() no lugar
+    # A seção INIT no HTML tem exatamente esta linha
+    html = html.replace(
+        '// ── INIT ──────────────────────────────────────────────────────────────────────\ngo(\'dashboard\');',
+        '// ── INIT ──────────────────────────────────────────────────────────────────────\n// go(\'dashboard\'); — substituído por checkAuth() do bloco Supabase abaixo'
+    )
 
     # 6. Adicionar o bloco JS do Supabase ANTES do </script> final
     html = html.replace('</script>\n</body>', JS_SUPABASE + '\n</script>\n</body>', 1)
