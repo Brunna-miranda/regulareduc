@@ -1,0 +1,10 @@
+Iniciando servidor local...
+Servidor rodando em http://localhost:8080
+Criando túnel público via ngrok...
+Erro no túnel: The ngrok process errored on start: authentication failed: Usage of ngrok requires a verified account and authtoken.\n\nSign up for an account: https://dashboard.ngrok.com/signup\nInstall your authtoken: https://dashboard.ngrok.com/get-started/your-authtoken\r\n\r\nERR_NGROK_4018\r\n.
+
+Acesso local: http://localhost:8080
+Para link público, acesse: https://app.netlify.com/drop
+e arraste o arquivo: C:\claude\regulatorio-platform\regulareduc.html
+
+Pressione Enter para encerrar...
