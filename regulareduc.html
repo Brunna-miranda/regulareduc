@@ -137,6 +137,18 @@ textarea{resize:vertical;min-height:72px}
 .drw-hd{padding:18px 22px;border-bottom:1px solid var(--border);position:sticky;top:0;
          background:#fff;z-index:1;display:flex;align-items:center;justify-content:space-between}
 .drw-body{padding:18px 22px}
+/* Treinamentos */
+.trn-mapa{overflow-x:auto;margin-top:14px}
+.trn-mapa table{border-collapse:collapse;font-size:11px;min-width:600px}
+.trn-mapa th{padding:6px 8px;background:var(--pri);color:#fff;white-space:nowrap;font-size:10px;text-align:center}
+.trn-mapa td.escola-col{padding:6px 10px;font-weight:500;font-size:12px;white-space:nowrap;background:#fff;border-bottom:1px solid var(--border)}
+.trn-mapa td.status-cell{text-align:center;padding:5px;border:1px solid var(--border)}
+.trn-cell-ok{background:#DCFCE7;color:#15803D;font-weight:700;font-size:10px}
+.trn-cell-warn{background:#FEF3C7;color:#92400E;font-weight:700;font-size:10px}
+.trn-cell-venc{background:#FEE2E2;color:#991B1B;font-weight:700;font-size:10px}
+.trn-cell-nao{background:#F1F5F9;color:#94a3b8;font-size:10px}
+.trn-tipo-card{padding:14px;cursor:pointer;transition:transform .15s;border-left:4px solid}
+.trn-tipo-card:hover{transform:translateY(-2px)}
 /* Situação documento */
 .sit{display:inline-flex;align-items:center;gap:3px;padding:2px 8px;border-radius:20px;font-size:10px;font-weight:700;white-space:nowrap}
 .sit-em_elaboracao{background:#F3F4F6;color:#4B5563}
@@ -258,6 +270,7 @@ textarea{resize:vertical;min-height:72px}
     <div class="ni" data-s="financeiro" onclick="go('financeiro')"><i data-lucide="dollar-sign"></i>Financeiro</div>
     <div class="ni" data-s="contatos" onclick="go('contatos')"><i data-lucide="phone"></i>Contatos SEEDUC</div>
     <div class="ni" data-s="tarefas" onclick="go('tarefas')"><i data-lucide="check-square"></i>Tarefas</div>
+    <div class="ni" data-s="treinamentos" onclick="go('treinamentos')"><i data-lucide="graduation-cap"></i>Treinamentos</div>
     <div class="nav-sep">Conformidade</div>
     <div class="ni" data-s="calendario" onclick="go('calendario')"><i data-lucide="calendar"></i>Calendário</div>
     <div class="ni" data-s="auditoria" onclick="go('auditoria')"><i data-lucide="clipboard-check"></i>Auditoria</div>
@@ -319,6 +332,17 @@ if(!DB.tarefas)DB.tarefas=[];
 if(!DB.arquivos)DB.arquivos=[];
 if(!DB.etaps)DB.etaps=[];
 if(!DB.auditorias)DB.auditorias=[];
+if(!DB.treinamentos)DB.treinamentos=[];
+if(!DB.tipos_treinamento)DB.tipos_treinamento=[
+  {id:1,nome:'Lei Lucas — Primeiros Socorros',sigla:'Lei Lucas',meses:24,lei:'Lei 13.722/2018',obrigatorio:true},
+  {id:2,nome:'Evacuação e Combate a Incêndio',sigla:'Evacuação',meses:12,lei:'ABNT NBR 14276',obrigatorio:true},
+  {id:3,nome:'Brigada de Incêndio',sigla:'Brigada',meses:12,lei:'ABNT NBR 14276',obrigatorio:true},
+  {id:4,nome:'SIPAT — Semana de Prevenção de Acidentes',sigla:'SIPAT',meses:12,lei:'NR-5',obrigatorio:true},
+  {id:5,nome:'Primeiros Socorros Básico',sigla:'Prim. Socorros',meses:24,lei:'NR-7',obrigatorio:false},
+  {id:6,nome:'Proteção e Defesa Civil',sigla:'Def. Civil',meses:24,lei:'Lei 12.608/2012',obrigatorio:false},
+  {id:7,nome:'NR-10 — Segurança Elétrica',sigla:'NR-10',meses:24,lei:'NR-10',obrigatorio:false},
+  {id:8,nome:'Outro',sigla:'Outro',meses:12,lei:'',obrigatorio:false},
+];
 if(!DB.legislacoes)DB.legislacoes=[];
 if(!DB.modelos_anexos)DB.modelos_anexos=[];
 if(!DB.tipos_processo)DB.tipos_processo=[
@@ -379,7 +403,8 @@ const state={docsPage:1,docsF:{rede:'',status:'',tipo:'',q:''},
              tarefasF:{q:'',status:'',resp:'',prioridade:'',escola:''},tarefasPage:1,
              calYear:new Date().getFullYear(),calMonth:new Date().getMonth()};
 const TITLES={dashboard:'Dashboard',docs:'Documentos',processos:'Processos SEI',
-  tarefas:'Tarefas',escolas:'Escolas',etap:'ETAP',legislacoes:'Legislações & Modelos',
+  tarefas:'Tarefas',treinamentos:'Treinamentos Obrigatórios',
+  escolas:'Escolas',etap:'ETAP',legislacoes:'Legislações & Modelos',
   licencas:'Licenças & Alvarás',financeiro:'Financeiro',
   contatos:'Contatos SEEDUC',calendario:'Calendário',auditoria:'Auditoria & Conformidade',
   relatorios:'Relatórios',config:'Configurações'};
@@ -393,7 +418,8 @@ function go(s){
 function render(){
   const el=document.getElementById('main-content');
   const map={dashboard:renderDashboard,docs:renderDocs,processos:renderProcessos,
-             tarefas:renderTarefas,escolas:renderEscolas,etap:renderEtap,
+             tarefas:renderTarefas,treinamentos:renderTreinamentos,
+             escolas:renderEscolas,etap:renderEtap,
              legislacoes:renderLegislacoes,licencas:renderLicencas,
              contatos:renderContatos,financeiro:renderFinanceiro,
              calendario:renderCalendario,auditoria:renderAuditoria,
@@ -2746,6 +2772,428 @@ async function deleteModelo(id){
   if(m.arquivo_id)try{await removeFileContent(m.arquivo_id);}catch(e){}
   DB.modelos_anexos=DB.modelos_anexos.filter(x=>x.id!==id);
   save();render();showToast('Modelo excluído','error');
+}
+
+// ── TREINAMENTOS ──────────────────────────────────────────────────────────────
+function trnStatus(t){
+  if(!t.data_vencimento)return'nao_realizado';
+  const d=daysUntil(t.data_vencimento);
+  if(d<0)return'vencido';
+  if(d<=60)return'a_renovar';
+  return'em_dia';
+}
+const TRN_STATUS={
+  em_dia:{label:'✅ Em dia',cls:'trn-cell-ok',badge:'ok'},
+  a_renovar:{label:'⚠️ A renovar',cls:'trn-cell-warn',badge:'warn'},
+  vencido:{label:'🔴 Vencido',cls:'trn-cell-venc',badge:'danger'},
+  nao_realizado:{label:'— Não realizado',cls:'trn-cell-nao',badge:'gray'},
+};
+
+function renderTreinamentos(){
+  const fT=state.trnF||{q:'',rede:'',tipo:'',status:''};
+  if(!state.trnF)state.trnF={q:'',rede:'',tipo:'',status:''};
+  const tab=state.trnTab||'lista';
+
+  const redes=[...new Set(DB.schools.map(s=>s.rede))].sort();
+  const obrigatorios=DB.tipos_treinamento.filter(t=>t.obrigatorio);
+
+  // Enriquecer registros com status calculado
+  const allTrn=DB.treinamentos.map(t=>({...t,_status:trnStatus(t)}));
+
+  // Filtros
+  let fl=[...allTrn];
+  if(fT.rede)fl=fl.filter(t=>t.rede===fT.rede);
+  if(fT.tipo)fl=fl.filter(t=>t.tipo_nome===fT.tipo);
+  if(fT.status)fl=fl.filter(t=>t._status===fT.status);
+  if(fT.q){const q=fT.q.toLowerCase();fl=fl.filter(t=>(t.escola||'').toLowerCase().includes(q)||(t.tipo_nome||'').toLowerCase().includes(q)||(t.instrutor||'').toLowerCase().includes(q));}
+
+  // KPIs
+  const emDia=allTrn.filter(t=>t._status==='em_dia').length;
+  const aRen=allTrn.filter(t=>t._status==='a_renovar').length;
+  const venc=allTrn.filter(t=>t._status==='vencido').length;
+  const naoR=allTrn.filter(t=>t._status==='nao_realizado').length;
+
+  const tabBtns=`
+    <div class="view-toggle" style="margin-bottom:16px">
+      <button class="${tab==='lista'?'active':''}" onclick="state.trnTab='lista';render()">
+        <i data-lucide="list" style="width:12px;height:12px"></i>Lista de Registros</button>
+      <button class="${tab==='mapa'?'active':''}" onclick="state.trnTab='mapa';render()">
+        <i data-lucide="grid" style="width:12px;height:12px"></i>Mapa de Conformidade</button>
+      <button class="${tab==='tipos'?'active':''}" onclick="state.trnTab='tipos';render()">
+        <i data-lucide="settings" style="width:12px;height:12px"></i>Tipos de Treinamento</button>
+    </div>`;
+
+  const kpis=`
+  <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:20px">
+    <div class="card" style="padding:14px">
+      <div class="kpi-lbl">Total de Registros</div>
+      <div class="kpi-val">${allTrn.length}</div>
+      <div class="kpi-sub">${DB.schools.length} escolas</div>
+    </div>
+    <div class="card" style="padding:14px;border-left:4px solid var(--green)">
+      <div class="kpi-lbl">Em Dia</div>
+      <div class="kpi-val ok">${emDia}</div>
+    </div>
+    <div class="card" style="padding:14px;border-left:4px solid var(--yellow)">
+      <div class="kpi-lbl">A Renovar (≤60d)</div>
+      <div class="kpi-val warn">${aRen}</div>
+    </div>
+    <div class="card" style="padding:14px;border-left:4px solid var(--red)">
+      <div class="kpi-lbl">Vencidos / Não Realizados</div>
+      <div class="kpi-val danger">${venc+naoR}</div>
+    </div>
+  </div>`;
+
+  let content='';
+  if(tab==='lista') content=renderTrnLista(fl,redes,fT);
+  else if(tab==='mapa') content=renderTrnMapa(allTrn);
+  else content=renderTrnTipos();
+
+  return`
+  <div class="sh">
+    <div><div class="sh-title">Treinamentos Obrigatórios</div>
+      <div class="sh-sub">Gestão de treinamentos regulatórios por escola — Lei Lucas, Evacuação, Brigada e outros</div>
+    </div>
+    <button class="btn btn-pri" onclick="openEditTreinamento(null)">
+      <i data-lucide="plus" style="width:14px;height:14px"></i>Novo Registro</button>
+  </div>
+  ${kpis}
+  ${tabBtns}
+  ${content}`;
+}
+
+function renderTrnLista(fl,redes,fT){
+  const tipos=[...new Set(DB.tipos_treinamento.map(t=>t.nome))];
+  const rows=fl.sort((a,b)=>{
+    const o={vencido:0,nao_realizado:1,a_renovar:2,em_dia:3};
+    return(o[a._status]||4)-(o[b._status]||4);
+  }).map(t=>{
+    const st=TRN_STATUS[t._status]||TRN_STATUS.nao_realizado;
+    const days=t.data_vencimento?daysUntil(t.data_vencimento):null;
+    const daysTag=days!==null?`<span style="font-size:10px;padding:1px 6px;border-radius:8px;font-weight:700;
+      background:${days<0?'var(--rbg)':days<=30?'var(--ybg)':'var(--gbg)'};
+      color:${days<0?'#991B1B':days<=30?'#92400E':'#15803D'}">${days<0?Math.abs(days)+'d atr.':days+'d'}</span>`:'';
+    const tipoInfo=DB.tipos_treinamento.find(x=>x.nome===t.tipo_nome)||{};
+    return`<tr>
+      <td><div class="td-name">${esc(t.escola||'—')}</div><div class="td-sub">${esc(t.rede||'')}</div></td>
+      <td>
+        <div style="font-weight:600;font-size:13px">${esc(t.tipo_nome||'—')}</div>
+        ${tipoInfo.lei?`<div style="font-size:10px;color:var(--muted)">${esc(tipoInfo.lei)}</div>`:''}
+      </td>
+      <td><span class="badge ${st.badge}">${st.label}</span></td>
+      <td style="font-size:12px">${fmtDate(t.data_realizacao)}</td>
+      <td>${fmtDate(t.data_vencimento)} ${daysTag}</td>
+      <td style="font-size:12px;color:var(--muted)">${esc(t.instrutor||'—')}</td>
+      <td style="text-align:center;font-size:12px">${t.num_participantes||'—'}</td>
+      <td>
+        ${t.carga_horaria?`<span style="font-size:11px;background:var(--sec);padding:2px 7px;border-radius:10px">${t.carga_horaria}h</span>`:'—'}
+      </td>
+      <td><div class="act-btns">
+        <button class="btn btn-sec btn-sm" onclick="openEditTreinamento(${t.id})"><i data-lucide="pencil" style="width:11px;height:11px"></i></button>
+        <button class="btn btn-danger btn-sm" onclick="deleteTreinamento(${t.id})"><i data-lucide="trash-2" style="width:11px;height:11px"></i></button>
+      </div></td>
+    </tr>`;
+  }).join('');
+
+  return`
+  <div class="filters">
+    <div class="search"><i data-lucide="search" style="width:14px;height:14px;color:var(--muted)"></i>
+      <input placeholder="Buscar escola, tipo ou instrutor..." value="${esc(fT.q||'')}"
+             oninput="state.trnF.q=this.value;render()"></div>
+    <select class="fs" onchange="state.trnF.rede=this.value;render()">
+      <option value="">Todas as redes</option>
+      ${redes.map(r=>`<option value="${esc(r)}"${fT.rede===r?' selected':''}>${esc(r)}</option>`).join('')}
+    </select>
+    <select class="fs" onchange="state.trnF.tipo=this.value;render()">
+      <option value="">Todos os tipos</option>
+      ${DB.tipos_treinamento.map(t=>`<option value="${esc(t.nome)}"${fT.tipo===t.nome?' selected':''}>${esc(t.nome)}</option>`).join('')}
+    </select>
+    <select class="fs" onchange="state.trnF.status=this.value;render()">
+      <option value="">Todos os status</option>
+      <option value="em_dia"${fT.status==='em_dia'?' selected':''}>✅ Em dia</option>
+      <option value="a_renovar"${fT.status==='a_renovar'?' selected':''}>⚠️ A renovar</option>
+      <option value="vencido"${fT.status==='vencido'?' selected':''}>🔴 Vencido</option>
+      <option value="nao_realizado"${fT.status==='nao_realizado'?' selected':''}>— Não realizado</option>
+    </select>
+  </div>
+  ${fl.length===0?`
+  <div class="card" style="padding:50px 30px;text-align:center">
+    <div style="font-size:42px;margin-bottom:12px">🎓</div>
+    <div style="font-size:16px;font-weight:700;margin-bottom:8px">Nenhum treinamento cadastrado</div>
+    <div style="color:var(--muted);font-size:13px;max-width:420px;margin:0 auto 20px">
+      Registre os treinamentos obrigatórios de cada escola: Lei Lucas, Evacuação de Incêndio, Brigada e outros.
+    </div>
+    <button class="btn btn-pri" onclick="openEditTreinamento(null)">
+      <i data-lucide="plus" style="width:14px;height:14px"></i>Registrar primeiro treinamento</button>
+  </div>`:`
+  <div class="card tbl-wrap" style="padding:0">
+    <table><thead><tr>
+      <th>Escola</th><th>Tipo de Treinamento</th><th>Status</th>
+      <th>Realização</th><th>Vencimento</th><th>Instrutor</th>
+      <th>Participantes</th><th>Carga</th><th></th>
+    </tr></thead>
+    <tbody>${rows}</tbody></table>
+  </div>`}`;
+}
+
+function renderTrnMapa(allTrn){
+  const obrigatorios=DB.tipos_treinamento.filter(t=>t.obrigatorio);
+  const escolas=[...DB.schools].sort((a,b)=>{
+    // Ordenar por mais não-conformes primeiro
+    const trnA=allTrn.filter(t=>t.escola_id===a.id);
+    const trnB=allTrn.filter(t=>t.escola_id===b.id);
+    const badA=trnA.filter(t=>['vencido','nao_realizado','a_renovar'].includes(t._status)).length;
+    const badB=trnB.filter(t=>['vencido','nao_realizado','a_renovar'].includes(t._status)).length;
+    return badB-badA;
+  });
+
+  const headerCols=obrigatorios.map(t=>`<th title="${esc(t.nome)}" style="max-width:80px;white-space:normal;text-align:center;padding:6px 4px">${esc(t.sigla)}</th>`).join('');
+
+  const rows=escolas.map(s=>{
+    const cells=obrigatorios.map(tipo=>{
+      const reg=allTrn.filter(t=>t.escola_id===s.id&&t.tipo_nome===tipo.nome);
+      if(!reg.length){
+        return`<td class="status-cell trn-cell-nao">—</td>`;
+      }
+      // Pegar o registro mais recente
+      const latest=reg.sort((a,b)=>(b.data_realizacao||'').localeCompare(a.data_realizacao||''))[0];
+      const st=latest._status;
+      const days=latest.data_vencimento?daysUntil(latest.data_vencimento):null;
+      const label=days!==null?(days<0?Math.abs(days)+'d':days+'d'):'OK';
+      const cls={em_dia:'trn-cell-ok',a_renovar:'trn-cell-warn',vencido:'trn-cell-venc',nao_realizado:'trn-cell-nao'}[st];
+      return`<td class="status-cell ${cls}" title="${fmtDate(latest.data_vencimento)}"
+              onclick="openEditTreinamento(${latest.id})" style="cursor:pointer">${label}</td>`;
+    }).join('');
+    const naoConformes=obrigatorios.filter(tipo=>{
+      const reg=allTrn.filter(t=>t.escola_id===s.id&&t.tipo_nome===tipo.nome);
+      if(!reg.length)return true;
+      return['vencido','a_renovar'].includes(reg[0]._status);
+    }).length;
+    const cor=naoConformes===0?'var(--green)':naoConformes<=2?'var(--yellow)':'var(--red)';
+    return`<tr>
+      <td class="escola-col" style="border-right:2px solid var(--border)">
+        <div style="display:flex;align-items:center;gap:8px">
+          <div style="width:8px;height:8px;border-radius:50%;background:${cor};flex-shrink:0"></div>
+          <div>
+            <div>${esc(s.nome)}</div>
+            <div style="font-size:10px;color:var(--muted)">${esc(s.rede)}</div>
+          </div>
+        </div>
+      </td>
+      ${cells}
+    </tr>`;
+  }).join('');
+
+  return`
+  <div class="card" style="padding:16px">
+    <div style="font-size:13px;font-weight:700;margin-bottom:4px">Mapa de Conformidade — Treinamentos Obrigatórios</div>
+    <div style="font-size:12px;color:var(--muted);margin-bottom:12px">Clique em uma célula para ver/editar o registro. Mostra apenas treinamentos obrigatórios.</div>
+    <div style="display:flex;gap:12px;font-size:11px;margin-bottom:10px;flex-wrap:wrap">
+      <span><span style="display:inline-block;width:10px;height:10px;border-radius:2px;background:var(--gbg);margin-right:4px"></span>✅ Em dia</span>
+      <span><span style="display:inline-block;width:10px;height:10px;border-radius:2px;background:var(--ybg);margin-right:4px"></span>⚠️ A renovar</span>
+      <span><span style="display:inline-block;width:10px;height:10px;border-radius:2px;background:var(--rbg);margin-right:4px"></span>🔴 Vencido</span>
+      <span><span style="display:inline-block;width:10px;height:10px;border-radius:2px;background:#F1F5F9;margin-right:4px"></span>— Não realizado</span>
+    </div>
+    <div class="trn-mapa">
+      <table>
+        <thead><tr>
+          <th style="text-align:left;min-width:180px">Escola</th>
+          ${headerCols}
+        </tr></thead>
+        <tbody>${rows}</tbody>
+      </table>
+    </div>
+  </div>`;
+}
+
+function renderTrnTipos(){
+  const rows=DB.tipos_treinamento.map((t,i)=>`
+    <tr>
+      <td><div class="td-name">${esc(t.nome)}</div></td>
+      <td><span class="tag rede" style="font-size:10px">${esc(t.sigla)}</span></td>
+      <td style="font-size:12px">${esc(t.lei||'—')}</td>
+      <td style="font-size:12px;text-align:center">${t.meses} meses</td>
+      <td><span class="badge ${t.obrigatorio?'danger':'gray'}">${t.obrigatorio?'Obrigatório':'Opcional'}</span></td>
+      <td>
+        <div style="font-size:11px;color:var(--muted)">
+          ${DB.treinamentos.filter(r=>r.tipo_nome===t.nome).length} registros
+        </div>
+      </td>
+      <td><div class="act-btns">
+        <button class="btn btn-sec btn-sm" onclick="editTipoTreinamento(${i})"><i data-lucide="pencil" style="width:11px;height:11px"></i></button>
+        ${DB.tipos_treinamento.length>1?`<button class="btn btn-danger btn-sm" onclick="deleteTipoTreinamento(${i})"><i data-lucide="trash-2" style="width:11px;height:11px"></i></button>`:''}
+      </div></td>
+    </tr>`).join('');
+
+  return`
+  <div class="sh">
+    <div class="sh-title" style="margin-bottom:0">Tipos de Treinamento</div>
+    <button class="btn btn-pri btn-sm" onclick="addTipoTreinamento()">
+      <i data-lucide="plus" style="width:13px;height:13px"></i>Novo Tipo</button>
+  </div>
+  <div class="card tbl-wrap" style="padding:0">
+    <table><thead><tr>
+      <th>Nome</th><th>Sigla</th><th>Base Legal</th><th>Periodicidade</th><th>Caráter</th><th>Registros</th><th></th>
+    </tr></thead>
+    <tbody>${rows}</tbody></table>
+  </div>`;
+}
+
+function openEditTreinamento(id){
+  const t=id?DB.treinamentos.find(x=>x.id===id)||{}:{};
+  const escolas=[...DB.schools].sort((a,b)=>a.nome.localeCompare(b.nome));
+  showModal(id?'Editar Registro de Treinamento':'Novo Registro de Treinamento',`
+    <div class="fr">
+      <div class="fg"><label>Escola *</label>
+        <select class="fi" id="tt-escola">
+          <option value="">Selecione...</option>
+          ${escolas.map(s=>`<option value="${s.id}" data-nome="${esc(s.nome)}" data-rede="${esc(s.rede)}"${t.escola_id===s.id?' selected':''}>${esc(s.nome)} (${esc(s.rede)})</option>`).join('')}
+        </select></div>
+      <div class="fg"><label>Tipo de Treinamento *</label>
+        <select class="fi" id="tt-tipo" onchange="autoPreenchePeriodo(this)">
+          <option value="">Selecione...</option>
+          ${DB.tipos_treinamento.map(x=>`<option value="${esc(x.nome)}" data-meses="${x.meses}"${t.tipo_nome===x.nome?' selected':''}>${esc(x.nome)}</option>`).join('')}
+        </select></div>
+    </div>
+    <div style="font-size:11px;color:var(--muted);margin-top:-8px;margin-bottom:10px" id="tt-lei-info"></div>
+    <div class="fr">
+      <div class="fg"><label>Data de Realização</label>
+        <input type="date" class="fi" id="tt-realizacao" value="${t.data_realizacao||''}"
+               oninput="autoCalcVencimento()"></div>
+      <div class="fg"><label>Data de Vencimento</label>
+        <input type="date" class="fi" id="tt-vencimento" value="${t.data_vencimento||''}"></div>
+    </div>
+    <div class="fr">
+      <div class="fg"><label>Instrutor / Empresa</label>
+        <input type="text" class="fi" id="tt-instrutor" value="${esc(t.instrutor||'')}" placeholder="Ex: Bombeiros Voluntários, SESC..."></div>
+      <div class="fg"><label>Nº de Participantes</label>
+        <input type="number" class="fi" id="tt-participantes" value="${t.num_participantes||''}" min="1" placeholder="Ex: 25"></div>
+    </div>
+    <div class="fr">
+      <div class="fg"><label>Carga Horária (horas)</label>
+        <input type="number" class="fi" id="tt-carga" value="${t.carga_horaria||''}" min="1" placeholder="Ex: 8"></div>
+      <div class="fg"><label>Certificado emitido?</label>
+        <select class="fi" id="tt-cert">
+          <option value="sim"${t.certificado_emitido!==false?' selected':''}>✅ Sim</option>
+          <option value="nao"${t.certificado_emitido===false?' selected':''}>❌ Não</option>
+        </select></div>
+    </div>
+    <div class="fg"><label>Observações</label>
+      <textarea class="fi" id="tt-obs" rows="2" placeholder="Conteúdo abordado, local, observações...">${esc(t.observacoes||'')}</textarea></div>`,
+    `<button class="btn btn-sec" onclick="closeModal()">Cancelar</button>
+     <button class="btn btn-pri" onclick="saveTreinamento(${id||0})"><i data-lucide="save" style="width:13px;height:13px"></i>Salvar</button>`
+  );
+  // Preencher info da lei selecionada
+  setTimeout(()=>{
+    const sel=document.getElementById('tt-tipo');
+    if(sel)autoPreenchePeriodo(sel);
+    document.getElementById('tt-tipo')?.addEventListener('change',function(){autoPreenchePeriodo(this);});
+  },50);
+}
+
+function autoPreenchePeriodo(sel){
+  const opt=sel.options[sel.selectedIndex];
+  const meses=parseInt(opt?.dataset?.meses)||0;
+  const nome=sel.value;
+  const tipo=DB.tipos_treinamento.find(t=>t.nome===nome);
+  const infoEl=document.getElementById('tt-lei-info');
+  if(infoEl&&tipo)infoEl.textContent=`${tipo.lei?'Base legal: '+tipo.lei+' · ':''}Renovação a cada ${tipo.meses} meses`;
+  autoCalcVencimento();
+}
+
+function autoCalcVencimento(){
+  const dt=document.getElementById('tt-realizacao')?.value;
+  const sel=document.getElementById('tt-tipo');
+  const opt=sel?.options[sel?.selectedIndex];
+  const meses=parseInt(opt?.dataset?.meses)||0;
+  const vencEl=document.getElementById('tt-vencimento');
+  if(dt&&meses&&vencEl&&!vencEl.value){
+    const d=new Date(dt);d.setMonth(d.getMonth()+meses);
+    vencEl.value=d.toISOString().split('T')[0];
+  }
+}
+
+function saveTreinamento(id){
+  const selE=document.getElementById('tt-escola');
+  const escolaId=parseInt(selE?.value)||null;
+  const selOpt=selE?.options[selE?.selectedIndex];
+  const tipoNome=document.getElementById('tt-tipo')?.value;
+  if(!escolaId||!tipoNome){showToast('Escola e tipo são obrigatórios','error');return;}
+  const rec={
+    escola_id:escolaId,
+    escola:selOpt?selOpt.dataset.nome:'',
+    rede:selOpt?selOpt.dataset.rede:'',
+    tipo_nome:tipoNome,
+    data_realizacao:document.getElementById('tt-realizacao')?.value||null,
+    data_vencimento:document.getElementById('tt-vencimento')?.value||null,
+    instrutor:document.getElementById('tt-instrutor')?.value?.trim()||null,
+    num_participantes:parseInt(document.getElementById('tt-participantes')?.value)||null,
+    carga_horaria:parseInt(document.getElementById('tt-carga')?.value)||null,
+    certificado_emitido:document.getElementById('tt-cert')?.value!=='nao',
+    observacoes:document.getElementById('tt-obs')?.value?.trim()||null,
+  };
+  if(id>0){const idx=DB.treinamentos.findIndex(x=>x.id===id);if(idx>=0)Object.assign(DB.treinamentos[idx],rec);}
+  else DB.treinamentos.push({id:nextId(DB.treinamentos),...rec});
+  save();closeModal();render();showToast('Treinamento salvo!');
+}
+
+function deleteTreinamento(id){
+  if(!confirm('Excluir este registro de treinamento?'))return;
+  DB.treinamentos=DB.treinamentos.filter(x=>x.id!==id);
+  save();render();showToast('Treinamento excluído','error');
+}
+
+function addTipoTreinamento(){
+  const nome=prompt('Nome do tipo de treinamento:','');
+  if(!nome?.trim())return;
+  const sigla=prompt('Sigla (abreviação):',nome.trim().split(' ')[0]);
+  const meses=parseInt(prompt('Periodicidade (meses de validade):','12')||'12');
+  const lei=prompt('Base legal (opcional):','');
+  DB.tipos_treinamento.push({
+    id:nextId(DB.tipos_treinamento.map((_,i)=>({id:i+1}))),
+    nome:nome.trim(),sigla:sigla?.trim()||nome.trim(),
+    meses,lei:lei?.trim()||'',obrigatorio:false
+  });
+  save();render();showToast('Tipo de treinamento adicionado!');
+}
+
+function editTipoTreinamento(i){
+  const t=DB.tipos_treinamento[i];if(!t)return;
+  showModal('Editar Tipo de Treinamento',`
+    <div class="fg"><label>Nome completo</label>
+      <input type="text" class="fi" id="ttp-nome" value="${esc(t.nome)}"></div>
+    <div class="fr">
+      <div class="fg"><label>Sigla</label>
+        <input type="text" class="fi" id="ttp-sigla" value="${esc(t.sigla)}"></div>
+      <div class="fg"><label>Periodicidade (meses)</label>
+        <input type="number" class="fi" id="ttp-meses" value="${t.meses}" min="1"></div>
+    </div>
+    <div class="fg"><label>Base Legal</label>
+      <input type="text" class="fi" id="ttp-lei" value="${esc(t.lei||'')}" placeholder="Ex: Lei 13.722/2018"></div>
+    <div class="fg"><label>Caráter</label>
+      <select class="fi" id="ttp-obrig">
+        <option value="1"${t.obrigatorio?' selected':''}>Obrigatório</option>
+        <option value="0"${!t.obrigatorio?' selected':''}>Opcional</option>
+      </select></div>`,
+    `<button class="btn btn-sec" onclick="closeModal()">Cancelar</button>
+     <button class="btn btn-pri" onclick="saveTipoTreinamento(${i})"><i data-lucide="save" style="width:13px;height:13px"></i>Salvar</button>`
+  );
+}
+
+function saveTipoTreinamento(i){
+  const t=DB.tipos_treinamento[i];if(!t)return;
+  t.nome=document.getElementById('ttp-nome')?.value?.trim()||t.nome;
+  t.sigla=document.getElementById('ttp-sigla')?.value?.trim()||t.sigla;
+  t.meses=parseInt(document.getElementById('ttp-meses')?.value)||t.meses;
+  t.lei=document.getElementById('ttp-lei')?.value?.trim()||'';
+  t.obrigatorio=document.getElementById('ttp-obrig')?.value==='1';
+  save();closeModal();render();showToast('Tipo atualizado!');
+}
+
+function deleteTipoTreinamento(i){
+  if(!confirm(`Excluir tipo "${DB.tipos_treinamento[i]?.nome}"?`))return;
+  DB.tipos_treinamento.splice(i,1);
+  save();render();showToast('Tipo removido','error');
 }
 
 // ── AUDITORIA ─────────────────────────────────────────────────────────────────

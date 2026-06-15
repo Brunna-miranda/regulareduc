@@ -7,7 +7,6 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
 <script src="https://unpkg.com/lucide@0.263.1/dist/umd/lucide.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
 :root{
@@ -138,6 +137,18 @@ textarea{resize:vertical;min-height:72px}
 .drw-hd{padding:18px 22px;border-bottom:1px solid var(--border);position:sticky;top:0;
          background:#fff;z-index:1;display:flex;align-items:center;justify-content:space-between}
 .drw-body{padding:18px 22px}
+/* Treinamentos */
+.trn-mapa{overflow-x:auto;margin-top:14px}
+.trn-mapa table{border-collapse:collapse;font-size:11px;min-width:600px}
+.trn-mapa th{padding:6px 8px;background:var(--pri);color:#fff;white-space:nowrap;font-size:10px;text-align:center}
+.trn-mapa td.escola-col{padding:6px 10px;font-weight:500;font-size:12px;white-space:nowrap;background:#fff;border-bottom:1px solid var(--border)}
+.trn-mapa td.status-cell{text-align:center;padding:5px;border:1px solid var(--border)}
+.trn-cell-ok{background:#DCFCE7;color:#15803D;font-weight:700;font-size:10px}
+.trn-cell-warn{background:#FEF3C7;color:#92400E;font-weight:700;font-size:10px}
+.trn-cell-venc{background:#FEE2E2;color:#991B1B;font-weight:700;font-size:10px}
+.trn-cell-nao{background:#F1F5F9;color:#94a3b8;font-size:10px}
+.trn-tipo-card{padding:14px;cursor:pointer;transition:transform .15s;border-left:4px solid}
+.trn-tipo-card:hover{transform:translateY(-2px)}
 /* Situação documento */
 .sit{display:inline-flex;align-items:center;gap:3px;padding:2px 8px;border-radius:20px;font-size:10px;font-weight:700;white-space:nowrap}
 .sit-em_elaboracao{background:#F3F4F6;color:#4B5563}
@@ -237,70 +248,10 @@ textarea{resize:vertical;min-height:72px}
 @media(max-width:1024px){.kpi-grid{grid-template-columns:repeat(2,1fr)};.farol-grid{grid-template-columns:repeat(3,1fr)}}
 ::-webkit-scrollbar{width:5px;height:5px}
 ::-webkit-scrollbar-thumb{background:var(--border);border-radius:3px}
-
-#login-root{position:fixed;inset:0;background:#F0F4FA;display:flex;align-items:center;justify-content:center;z-index:9999}
-.login-card{background:#fff;border-radius:16px;padding:36px;width:100%;max-width:420px;box-shadow:0 8px 40px rgba(0,0,0,.12)}
-.login-logo{font-size:26px;font-weight:800;color:#1B3A6B;letter-spacing:-.5px;text-align:center;margin-bottom:4px}
-.login-sub{font-size:12px;color:#6B7280;text-align:center;margin-bottom:24px}
-.login-tabs{display:flex;background:#F0F4FA;border-radius:10px;padding:3px;margin-bottom:20px}
-.login-tab{flex:1;padding:8px;border:none;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;background:transparent;color:#6B7280;transition:.15s;font-family:inherit}
-.login-tab.active{background:#fff;color:#1B3A6B;box-shadow:0 1px 4px rgba(0,0,0,.1)}
-.login-input{width:100%;padding:11px 14px;border:1.5px solid #E5E7EB;border-radius:10px;font-size:14px;outline:none;margin-bottom:12px;font-family:inherit;transition:border-color .15s;box-sizing:border-box}
-.login-input:focus{border-color:#2D6BE4}
-.login-btn{width:100%;padding:12px;background:#1B3A6B;color:#fff;border:none;border-radius:10px;font-size:14px;font-weight:700;cursor:pointer;transition:.15s;font-family:inherit;margin-top:4px}
-.login-btn:hover{background:#2D6BE4}
-.login-btn:disabled{opacity:.6;cursor:not-allowed}
-.login-msg{font-size:12px;padding:10px 14px;border-radius:8px;margin-bottom:14px;display:none;line-height:1.5}
-.login-msg.show{display:block}
-.login-msg.error{background:#FEE2E2;color:#991B1B;border:1px solid #FECACA}
-.login-msg.info{background:#EFF6FF;color:#1D4ED8;border:1px solid #BFDBFE}
-.login-msg.success{background:#DCFCE7;color:#15803D;border:1px solid #BBF7D0}
-#loading-overlay{position:fixed;inset:0;background:rgba(27,58,107,.92);display:none;align-items:center;justify-content:center;z-index:9998;flex-direction:column;gap:16px}
-.loading-spinner{width:40px;height:40px;border:3px solid rgba(255,255,255,.3);border-top-color:#fff;border-radius:50%;animation:spin .8s linear infinite}
-.loading-text{color:#fff;font-size:14px;font-weight:500}
-@keyframes spin{to{transform:rotate(360deg)}}
-
 </style>
 </head>
 <body>
 
-
-<div id="login-root">
-  <div class="login-card">
-    <div class="login-logo">RegularEduc</div>
-    <div class="login-sub">Plataforma de Gestão Regulatória Escolar</div>
-    <!-- Tabs -->
-    <div class="login-tabs">
-      <button class="login-tab active" id="tab-login" onclick="switchTab('login')">Entrar</button>
-      <button class="login-tab" id="tab-register" onclick="switchTab('register')">Criar Conta</button>
-    </div>
-    <!-- Mensagem -->
-    <div class="login-msg" id="login-msg"></div>
-    <!-- Formulário Entrar -->
-    <div id="form-login">
-      <input class="login-input" type="email" id="li-email" placeholder="E-mail"
-             onkeydown="if(event.key==='Enter')document.getElementById('li-pw').focus()">
-      <input class="login-input" type="password" id="li-pw" placeholder="Senha"
-             onkeydown="if(event.key==='Enter')doLogin()">
-      <button class="login-btn" onclick="doLogin()">Entrar</button>
-    </div>
-    <!-- Formulário Criar Conta -->
-    <div id="form-register" style="display:none">
-      <input class="login-input" type="text" id="reg-nome" placeholder="Nome completo"
-             onkeydown="if(event.key==='Enter')document.getElementById('reg-email').focus()">
-      <input class="login-input" type="email" id="reg-email" placeholder="E-mail"
-             onkeydown="if(event.key==='Enter')document.getElementById('reg-pw').focus()">
-      <input class="login-input" type="password" id="reg-pw" placeholder="Senha (mínimo 6 caracteres)"
-             onkeydown="if(event.key==='Enter')doRegister()">
-      <button class="login-btn" onclick="doRegister()">Criar Conta</button>
-    </div>
-  </div>
-</div>
-<div id="loading-overlay">
-  <div class="loading-spinner"></div>
-  <div class="loading-text" id="loading-text">Carregando dados...</div>
-</div>
-<div id="app-root" style="display:none">
 <div class="sb">
   <div class="sb-logo">
     <div class="sb-logo-main">RegularEduc</div>
@@ -319,6 +270,7 @@ textarea{resize:vertical;min-height:72px}
     <div class="ni" data-s="financeiro" onclick="go('financeiro')"><i data-lucide="dollar-sign"></i>Financeiro</div>
     <div class="ni" data-s="contatos" onclick="go('contatos')"><i data-lucide="phone"></i>Contatos SEEDUC</div>
     <div class="ni" data-s="tarefas" onclick="go('tarefas')"><i data-lucide="check-square"></i>Tarefas</div>
+    <div class="ni" data-s="treinamentos" onclick="go('treinamentos')"><i data-lucide="graduation-cap"></i>Treinamentos</div>
     <div class="nav-sep">Conformidade</div>
     <div class="ni" data-s="calendario" onclick="go('calendario')"><i data-lucide="calendar"></i>Calendário</div>
     <div class="ni" data-s="auditoria" onclick="go('auditoria')"><i data-lucide="clipboard-check"></i>Auditoria</div>
@@ -350,19 +302,12 @@ textarea{resize:vertical;min-height:72px}
       <div id="notif-list"></div>
     </div>
   </div>
-<button class="btn-ic" onclick="doLogout()" title="Sair" style="color:var(--red)">
-  <i data-lucide="log-out" style="width:16px;height:16px"></i>
-</button>
-</div>
 </div>
 
 <div class="main" id="main-content"></div>
 <div class="toasts" id="toasts"></div>
 <div id="modal-root"></div>
 <div id="drawer-root"></div>
-
-</div><!-- /app-root -->
-
 
 <script>
 
@@ -387,6 +332,17 @@ if(!DB.tarefas)DB.tarefas=[];
 if(!DB.arquivos)DB.arquivos=[];
 if(!DB.etaps)DB.etaps=[];
 if(!DB.auditorias)DB.auditorias=[];
+if(!DB.treinamentos)DB.treinamentos=[];
+if(!DB.tipos_treinamento)DB.tipos_treinamento=[
+  {id:1,nome:'Lei Lucas — Primeiros Socorros',sigla:'Lei Lucas',meses:24,lei:'Lei 13.722/2018',obrigatorio:true},
+  {id:2,nome:'Evacuação e Combate a Incêndio',sigla:'Evacuação',meses:12,lei:'ABNT NBR 14276',obrigatorio:true},
+  {id:3,nome:'Brigada de Incêndio',sigla:'Brigada',meses:12,lei:'ABNT NBR 14276',obrigatorio:true},
+  {id:4,nome:'SIPAT — Semana de Prevenção de Acidentes',sigla:'SIPAT',meses:12,lei:'NR-5',obrigatorio:true},
+  {id:5,nome:'Primeiros Socorros Básico',sigla:'Prim. Socorros',meses:24,lei:'NR-7',obrigatorio:false},
+  {id:6,nome:'Proteção e Defesa Civil',sigla:'Def. Civil',meses:24,lei:'Lei 12.608/2012',obrigatorio:false},
+  {id:7,nome:'NR-10 — Segurança Elétrica',sigla:'NR-10',meses:24,lei:'NR-10',obrigatorio:false},
+  {id:8,nome:'Outro',sigla:'Outro',meses:12,lei:'',obrigatorio:false},
+];
 if(!DB.legislacoes)DB.legislacoes=[];
 if(!DB.modelos_anexos)DB.modelos_anexos=[];
 if(!DB.tipos_processo)DB.tipos_processo=[
@@ -447,7 +403,8 @@ const state={docsPage:1,docsF:{rede:'',status:'',tipo:'',q:''},
              tarefasF:{q:'',status:'',resp:'',prioridade:'',escola:''},tarefasPage:1,
              calYear:new Date().getFullYear(),calMonth:new Date().getMonth()};
 const TITLES={dashboard:'Dashboard',docs:'Documentos',processos:'Processos SEI',
-  tarefas:'Tarefas',escolas:'Escolas',etap:'ETAP',legislacoes:'Legislações & Modelos',
+  tarefas:'Tarefas',treinamentos:'Treinamentos Obrigatórios',
+  escolas:'Escolas',etap:'ETAP',legislacoes:'Legislações & Modelos',
   licencas:'Licenças & Alvarás',financeiro:'Financeiro',
   contatos:'Contatos SEEDUC',calendario:'Calendário',auditoria:'Auditoria & Conformidade',
   relatorios:'Relatórios',config:'Configurações'};
@@ -461,7 +418,8 @@ function go(s){
 function render(){
   const el=document.getElementById('main-content');
   const map={dashboard:renderDashboard,docs:renderDocs,processos:renderProcessos,
-             tarefas:renderTarefas,escolas:renderEscolas,etap:renderEtap,
+             tarefas:renderTarefas,treinamentos:renderTreinamentos,
+             escolas:renderEscolas,etap:renderEtap,
              legislacoes:renderLegislacoes,licencas:renderLicencas,
              contatos:renderContatos,financeiro:renderFinanceiro,
              calendario:renderCalendario,auditoria:renderAuditoria,
@@ -2816,6 +2774,428 @@ async function deleteModelo(id){
   save();render();showToast('Modelo excluído','error');
 }
 
+// ── TREINAMENTOS ──────────────────────────────────────────────────────────────
+function trnStatus(t){
+  if(!t.data_vencimento)return'nao_realizado';
+  const d=daysUntil(t.data_vencimento);
+  if(d<0)return'vencido';
+  if(d<=60)return'a_renovar';
+  return'em_dia';
+}
+const TRN_STATUS={
+  em_dia:{label:'✅ Em dia',cls:'trn-cell-ok',badge:'ok'},
+  a_renovar:{label:'⚠️ A renovar',cls:'trn-cell-warn',badge:'warn'},
+  vencido:{label:'🔴 Vencido',cls:'trn-cell-venc',badge:'danger'},
+  nao_realizado:{label:'— Não realizado',cls:'trn-cell-nao',badge:'gray'},
+};
+
+function renderTreinamentos(){
+  const fT=state.trnF||{q:'',rede:'',tipo:'',status:''};
+  if(!state.trnF)state.trnF={q:'',rede:'',tipo:'',status:''};
+  const tab=state.trnTab||'lista';
+
+  const redes=[...new Set(DB.schools.map(s=>s.rede))].sort();
+  const obrigatorios=DB.tipos_treinamento.filter(t=>t.obrigatorio);
+
+  // Enriquecer registros com status calculado
+  const allTrn=DB.treinamentos.map(t=>({...t,_status:trnStatus(t)}));
+
+  // Filtros
+  let fl=[...allTrn];
+  if(fT.rede)fl=fl.filter(t=>t.rede===fT.rede);
+  if(fT.tipo)fl=fl.filter(t=>t.tipo_nome===fT.tipo);
+  if(fT.status)fl=fl.filter(t=>t._status===fT.status);
+  if(fT.q){const q=fT.q.toLowerCase();fl=fl.filter(t=>(t.escola||'').toLowerCase().includes(q)||(t.tipo_nome||'').toLowerCase().includes(q)||(t.instrutor||'').toLowerCase().includes(q));}
+
+  // KPIs
+  const emDia=allTrn.filter(t=>t._status==='em_dia').length;
+  const aRen=allTrn.filter(t=>t._status==='a_renovar').length;
+  const venc=allTrn.filter(t=>t._status==='vencido').length;
+  const naoR=allTrn.filter(t=>t._status==='nao_realizado').length;
+
+  const tabBtns=`
+    <div class="view-toggle" style="margin-bottom:16px">
+      <button class="${tab==='lista'?'active':''}" onclick="state.trnTab='lista';render()">
+        <i data-lucide="list" style="width:12px;height:12px"></i>Lista de Registros</button>
+      <button class="${tab==='mapa'?'active':''}" onclick="state.trnTab='mapa';render()">
+        <i data-lucide="grid" style="width:12px;height:12px"></i>Mapa de Conformidade</button>
+      <button class="${tab==='tipos'?'active':''}" onclick="state.trnTab='tipos';render()">
+        <i data-lucide="settings" style="width:12px;height:12px"></i>Tipos de Treinamento</button>
+    </div>`;
+
+  const kpis=`
+  <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:20px">
+    <div class="card" style="padding:14px">
+      <div class="kpi-lbl">Total de Registros</div>
+      <div class="kpi-val">${allTrn.length}</div>
+      <div class="kpi-sub">${DB.schools.length} escolas</div>
+    </div>
+    <div class="card" style="padding:14px;border-left:4px solid var(--green)">
+      <div class="kpi-lbl">Em Dia</div>
+      <div class="kpi-val ok">${emDia}</div>
+    </div>
+    <div class="card" style="padding:14px;border-left:4px solid var(--yellow)">
+      <div class="kpi-lbl">A Renovar (≤60d)</div>
+      <div class="kpi-val warn">${aRen}</div>
+    </div>
+    <div class="card" style="padding:14px;border-left:4px solid var(--red)">
+      <div class="kpi-lbl">Vencidos / Não Realizados</div>
+      <div class="kpi-val danger">${venc+naoR}</div>
+    </div>
+  </div>`;
+
+  let content='';
+  if(tab==='lista') content=renderTrnLista(fl,redes,fT);
+  else if(tab==='mapa') content=renderTrnMapa(allTrn);
+  else content=renderTrnTipos();
+
+  return`
+  <div class="sh">
+    <div><div class="sh-title">Treinamentos Obrigatórios</div>
+      <div class="sh-sub">Gestão de treinamentos regulatórios por escola — Lei Lucas, Evacuação, Brigada e outros</div>
+    </div>
+    <button class="btn btn-pri" onclick="openEditTreinamento(null)">
+      <i data-lucide="plus" style="width:14px;height:14px"></i>Novo Registro</button>
+  </div>
+  ${kpis}
+  ${tabBtns}
+  ${content}`;
+}
+
+function renderTrnLista(fl,redes,fT){
+  const tipos=[...new Set(DB.tipos_treinamento.map(t=>t.nome))];
+  const rows=fl.sort((a,b)=>{
+    const o={vencido:0,nao_realizado:1,a_renovar:2,em_dia:3};
+    return(o[a._status]||4)-(o[b._status]||4);
+  }).map(t=>{
+    const st=TRN_STATUS[t._status]||TRN_STATUS.nao_realizado;
+    const days=t.data_vencimento?daysUntil(t.data_vencimento):null;
+    const daysTag=days!==null?`<span style="font-size:10px;padding:1px 6px;border-radius:8px;font-weight:700;
+      background:${days<0?'var(--rbg)':days<=30?'var(--ybg)':'var(--gbg)'};
+      color:${days<0?'#991B1B':days<=30?'#92400E':'#15803D'}">${days<0?Math.abs(days)+'d atr.':days+'d'}</span>`:'';
+    const tipoInfo=DB.tipos_treinamento.find(x=>x.nome===t.tipo_nome)||{};
+    return`<tr>
+      <td><div class="td-name">${esc(t.escola||'—')}</div><div class="td-sub">${esc(t.rede||'')}</div></td>
+      <td>
+        <div style="font-weight:600;font-size:13px">${esc(t.tipo_nome||'—')}</div>
+        ${tipoInfo.lei?`<div style="font-size:10px;color:var(--muted)">${esc(tipoInfo.lei)}</div>`:''}
+      </td>
+      <td><span class="badge ${st.badge}">${st.label}</span></td>
+      <td style="font-size:12px">${fmtDate(t.data_realizacao)}</td>
+      <td>${fmtDate(t.data_vencimento)} ${daysTag}</td>
+      <td style="font-size:12px;color:var(--muted)">${esc(t.instrutor||'—')}</td>
+      <td style="text-align:center;font-size:12px">${t.num_participantes||'—'}</td>
+      <td>
+        ${t.carga_horaria?`<span style="font-size:11px;background:var(--sec);padding:2px 7px;border-radius:10px">${t.carga_horaria}h</span>`:'—'}
+      </td>
+      <td><div class="act-btns">
+        <button class="btn btn-sec btn-sm" onclick="openEditTreinamento(${t.id})"><i data-lucide="pencil" style="width:11px;height:11px"></i></button>
+        <button class="btn btn-danger btn-sm" onclick="deleteTreinamento(${t.id})"><i data-lucide="trash-2" style="width:11px;height:11px"></i></button>
+      </div></td>
+    </tr>`;
+  }).join('');
+
+  return`
+  <div class="filters">
+    <div class="search"><i data-lucide="search" style="width:14px;height:14px;color:var(--muted)"></i>
+      <input placeholder="Buscar escola, tipo ou instrutor..." value="${esc(fT.q||'')}"
+             oninput="state.trnF.q=this.value;render()"></div>
+    <select class="fs" onchange="state.trnF.rede=this.value;render()">
+      <option value="">Todas as redes</option>
+      ${redes.map(r=>`<option value="${esc(r)}"${fT.rede===r?' selected':''}>${esc(r)}</option>`).join('')}
+    </select>
+    <select class="fs" onchange="state.trnF.tipo=this.value;render()">
+      <option value="">Todos os tipos</option>
+      ${DB.tipos_treinamento.map(t=>`<option value="${esc(t.nome)}"${fT.tipo===t.nome?' selected':''}>${esc(t.nome)}</option>`).join('')}
+    </select>
+    <select class="fs" onchange="state.trnF.status=this.value;render()">
+      <option value="">Todos os status</option>
+      <option value="em_dia"${fT.status==='em_dia'?' selected':''}>✅ Em dia</option>
+      <option value="a_renovar"${fT.status==='a_renovar'?' selected':''}>⚠️ A renovar</option>
+      <option value="vencido"${fT.status==='vencido'?' selected':''}>🔴 Vencido</option>
+      <option value="nao_realizado"${fT.status==='nao_realizado'?' selected':''}>— Não realizado</option>
+    </select>
+  </div>
+  ${fl.length===0?`
+  <div class="card" style="padding:50px 30px;text-align:center">
+    <div style="font-size:42px;margin-bottom:12px">🎓</div>
+    <div style="font-size:16px;font-weight:700;margin-bottom:8px">Nenhum treinamento cadastrado</div>
+    <div style="color:var(--muted);font-size:13px;max-width:420px;margin:0 auto 20px">
+      Registre os treinamentos obrigatórios de cada escola: Lei Lucas, Evacuação de Incêndio, Brigada e outros.
+    </div>
+    <button class="btn btn-pri" onclick="openEditTreinamento(null)">
+      <i data-lucide="plus" style="width:14px;height:14px"></i>Registrar primeiro treinamento</button>
+  </div>`:`
+  <div class="card tbl-wrap" style="padding:0">
+    <table><thead><tr>
+      <th>Escola</th><th>Tipo de Treinamento</th><th>Status</th>
+      <th>Realização</th><th>Vencimento</th><th>Instrutor</th>
+      <th>Participantes</th><th>Carga</th><th></th>
+    </tr></thead>
+    <tbody>${rows}</tbody></table>
+  </div>`}`;
+}
+
+function renderTrnMapa(allTrn){
+  const obrigatorios=DB.tipos_treinamento.filter(t=>t.obrigatorio);
+  const escolas=[...DB.schools].sort((a,b)=>{
+    // Ordenar por mais não-conformes primeiro
+    const trnA=allTrn.filter(t=>t.escola_id===a.id);
+    const trnB=allTrn.filter(t=>t.escola_id===b.id);
+    const badA=trnA.filter(t=>['vencido','nao_realizado','a_renovar'].includes(t._status)).length;
+    const badB=trnB.filter(t=>['vencido','nao_realizado','a_renovar'].includes(t._status)).length;
+    return badB-badA;
+  });
+
+  const headerCols=obrigatorios.map(t=>`<th title="${esc(t.nome)}" style="max-width:80px;white-space:normal;text-align:center;padding:6px 4px">${esc(t.sigla)}</th>`).join('');
+
+  const rows=escolas.map(s=>{
+    const cells=obrigatorios.map(tipo=>{
+      const reg=allTrn.filter(t=>t.escola_id===s.id&&t.tipo_nome===tipo.nome);
+      if(!reg.length){
+        return`<td class="status-cell trn-cell-nao">—</td>`;
+      }
+      // Pegar o registro mais recente
+      const latest=reg.sort((a,b)=>(b.data_realizacao||'').localeCompare(a.data_realizacao||''))[0];
+      const st=latest._status;
+      const days=latest.data_vencimento?daysUntil(latest.data_vencimento):null;
+      const label=days!==null?(days<0?Math.abs(days)+'d':days+'d'):'OK';
+      const cls={em_dia:'trn-cell-ok',a_renovar:'trn-cell-warn',vencido:'trn-cell-venc',nao_realizado:'trn-cell-nao'}[st];
+      return`<td class="status-cell ${cls}" title="${fmtDate(latest.data_vencimento)}"
+              onclick="openEditTreinamento(${latest.id})" style="cursor:pointer">${label}</td>`;
+    }).join('');
+    const naoConformes=obrigatorios.filter(tipo=>{
+      const reg=allTrn.filter(t=>t.escola_id===s.id&&t.tipo_nome===tipo.nome);
+      if(!reg.length)return true;
+      return['vencido','a_renovar'].includes(reg[0]._status);
+    }).length;
+    const cor=naoConformes===0?'var(--green)':naoConformes<=2?'var(--yellow)':'var(--red)';
+    return`<tr>
+      <td class="escola-col" style="border-right:2px solid var(--border)">
+        <div style="display:flex;align-items:center;gap:8px">
+          <div style="width:8px;height:8px;border-radius:50%;background:${cor};flex-shrink:0"></div>
+          <div>
+            <div>${esc(s.nome)}</div>
+            <div style="font-size:10px;color:var(--muted)">${esc(s.rede)}</div>
+          </div>
+        </div>
+      </td>
+      ${cells}
+    </tr>`;
+  }).join('');
+
+  return`
+  <div class="card" style="padding:16px">
+    <div style="font-size:13px;font-weight:700;margin-bottom:4px">Mapa de Conformidade — Treinamentos Obrigatórios</div>
+    <div style="font-size:12px;color:var(--muted);margin-bottom:12px">Clique em uma célula para ver/editar o registro. Mostra apenas treinamentos obrigatórios.</div>
+    <div style="display:flex;gap:12px;font-size:11px;margin-bottom:10px;flex-wrap:wrap">
+      <span><span style="display:inline-block;width:10px;height:10px;border-radius:2px;background:var(--gbg);margin-right:4px"></span>✅ Em dia</span>
+      <span><span style="display:inline-block;width:10px;height:10px;border-radius:2px;background:var(--ybg);margin-right:4px"></span>⚠️ A renovar</span>
+      <span><span style="display:inline-block;width:10px;height:10px;border-radius:2px;background:var(--rbg);margin-right:4px"></span>🔴 Vencido</span>
+      <span><span style="display:inline-block;width:10px;height:10px;border-radius:2px;background:#F1F5F9;margin-right:4px"></span>— Não realizado</span>
+    </div>
+    <div class="trn-mapa">
+      <table>
+        <thead><tr>
+          <th style="text-align:left;min-width:180px">Escola</th>
+          ${headerCols}
+        </tr></thead>
+        <tbody>${rows}</tbody>
+      </table>
+    </div>
+  </div>`;
+}
+
+function renderTrnTipos(){
+  const rows=DB.tipos_treinamento.map((t,i)=>`
+    <tr>
+      <td><div class="td-name">${esc(t.nome)}</div></td>
+      <td><span class="tag rede" style="font-size:10px">${esc(t.sigla)}</span></td>
+      <td style="font-size:12px">${esc(t.lei||'—')}</td>
+      <td style="font-size:12px;text-align:center">${t.meses} meses</td>
+      <td><span class="badge ${t.obrigatorio?'danger':'gray'}">${t.obrigatorio?'Obrigatório':'Opcional'}</span></td>
+      <td>
+        <div style="font-size:11px;color:var(--muted)">
+          ${DB.treinamentos.filter(r=>r.tipo_nome===t.nome).length} registros
+        </div>
+      </td>
+      <td><div class="act-btns">
+        <button class="btn btn-sec btn-sm" onclick="editTipoTreinamento(${i})"><i data-lucide="pencil" style="width:11px;height:11px"></i></button>
+        ${DB.tipos_treinamento.length>1?`<button class="btn btn-danger btn-sm" onclick="deleteTipoTreinamento(${i})"><i data-lucide="trash-2" style="width:11px;height:11px"></i></button>`:''}
+      </div></td>
+    </tr>`).join('');
+
+  return`
+  <div class="sh">
+    <div class="sh-title" style="margin-bottom:0">Tipos de Treinamento</div>
+    <button class="btn btn-pri btn-sm" onclick="addTipoTreinamento()">
+      <i data-lucide="plus" style="width:13px;height:13px"></i>Novo Tipo</button>
+  </div>
+  <div class="card tbl-wrap" style="padding:0">
+    <table><thead><tr>
+      <th>Nome</th><th>Sigla</th><th>Base Legal</th><th>Periodicidade</th><th>Caráter</th><th>Registros</th><th></th>
+    </tr></thead>
+    <tbody>${rows}</tbody></table>
+  </div>`;
+}
+
+function openEditTreinamento(id){
+  const t=id?DB.treinamentos.find(x=>x.id===id)||{}:{};
+  const escolas=[...DB.schools].sort((a,b)=>a.nome.localeCompare(b.nome));
+  showModal(id?'Editar Registro de Treinamento':'Novo Registro de Treinamento',`
+    <div class="fr">
+      <div class="fg"><label>Escola *</label>
+        <select class="fi" id="tt-escola">
+          <option value="">Selecione...</option>
+          ${escolas.map(s=>`<option value="${s.id}" data-nome="${esc(s.nome)}" data-rede="${esc(s.rede)}"${t.escola_id===s.id?' selected':''}>${esc(s.nome)} (${esc(s.rede)})</option>`).join('')}
+        </select></div>
+      <div class="fg"><label>Tipo de Treinamento *</label>
+        <select class="fi" id="tt-tipo" onchange="autoPreenchePeriodo(this)">
+          <option value="">Selecione...</option>
+          ${DB.tipos_treinamento.map(x=>`<option value="${esc(x.nome)}" data-meses="${x.meses}"${t.tipo_nome===x.nome?' selected':''}>${esc(x.nome)}</option>`).join('')}
+        </select></div>
+    </div>
+    <div style="font-size:11px;color:var(--muted);margin-top:-8px;margin-bottom:10px" id="tt-lei-info"></div>
+    <div class="fr">
+      <div class="fg"><label>Data de Realização</label>
+        <input type="date" class="fi" id="tt-realizacao" value="${t.data_realizacao||''}"
+               oninput="autoCalcVencimento()"></div>
+      <div class="fg"><label>Data de Vencimento</label>
+        <input type="date" class="fi" id="tt-vencimento" value="${t.data_vencimento||''}"></div>
+    </div>
+    <div class="fr">
+      <div class="fg"><label>Instrutor / Empresa</label>
+        <input type="text" class="fi" id="tt-instrutor" value="${esc(t.instrutor||'')}" placeholder="Ex: Bombeiros Voluntários, SESC..."></div>
+      <div class="fg"><label>Nº de Participantes</label>
+        <input type="number" class="fi" id="tt-participantes" value="${t.num_participantes||''}" min="1" placeholder="Ex: 25"></div>
+    </div>
+    <div class="fr">
+      <div class="fg"><label>Carga Horária (horas)</label>
+        <input type="number" class="fi" id="tt-carga" value="${t.carga_horaria||''}" min="1" placeholder="Ex: 8"></div>
+      <div class="fg"><label>Certificado emitido?</label>
+        <select class="fi" id="tt-cert">
+          <option value="sim"${t.certificado_emitido!==false?' selected':''}>✅ Sim</option>
+          <option value="nao"${t.certificado_emitido===false?' selected':''}>❌ Não</option>
+        </select></div>
+    </div>
+    <div class="fg"><label>Observações</label>
+      <textarea class="fi" id="tt-obs" rows="2" placeholder="Conteúdo abordado, local, observações...">${esc(t.observacoes||'')}</textarea></div>`,
+    `<button class="btn btn-sec" onclick="closeModal()">Cancelar</button>
+     <button class="btn btn-pri" onclick="saveTreinamento(${id||0})"><i data-lucide="save" style="width:13px;height:13px"></i>Salvar</button>`
+  );
+  // Preencher info da lei selecionada
+  setTimeout(()=>{
+    const sel=document.getElementById('tt-tipo');
+    if(sel)autoPreenchePeriodo(sel);
+    document.getElementById('tt-tipo')?.addEventListener('change',function(){autoPreenchePeriodo(this);});
+  },50);
+}
+
+function autoPreenchePeriodo(sel){
+  const opt=sel.options[sel.selectedIndex];
+  const meses=parseInt(opt?.dataset?.meses)||0;
+  const nome=sel.value;
+  const tipo=DB.tipos_treinamento.find(t=>t.nome===nome);
+  const infoEl=document.getElementById('tt-lei-info');
+  if(infoEl&&tipo)infoEl.textContent=`${tipo.lei?'Base legal: '+tipo.lei+' · ':''}Renovação a cada ${tipo.meses} meses`;
+  autoCalcVencimento();
+}
+
+function autoCalcVencimento(){
+  const dt=document.getElementById('tt-realizacao')?.value;
+  const sel=document.getElementById('tt-tipo');
+  const opt=sel?.options[sel?.selectedIndex];
+  const meses=parseInt(opt?.dataset?.meses)||0;
+  const vencEl=document.getElementById('tt-vencimento');
+  if(dt&&meses&&vencEl&&!vencEl.value){
+    const d=new Date(dt);d.setMonth(d.getMonth()+meses);
+    vencEl.value=d.toISOString().split('T')[0];
+  }
+}
+
+function saveTreinamento(id){
+  const selE=document.getElementById('tt-escola');
+  const escolaId=parseInt(selE?.value)||null;
+  const selOpt=selE?.options[selE?.selectedIndex];
+  const tipoNome=document.getElementById('tt-tipo')?.value;
+  if(!escolaId||!tipoNome){showToast('Escola e tipo são obrigatórios','error');return;}
+  const rec={
+    escola_id:escolaId,
+    escola:selOpt?selOpt.dataset.nome:'',
+    rede:selOpt?selOpt.dataset.rede:'',
+    tipo_nome:tipoNome,
+    data_realizacao:document.getElementById('tt-realizacao')?.value||null,
+    data_vencimento:document.getElementById('tt-vencimento')?.value||null,
+    instrutor:document.getElementById('tt-instrutor')?.value?.trim()||null,
+    num_participantes:parseInt(document.getElementById('tt-participantes')?.value)||null,
+    carga_horaria:parseInt(document.getElementById('tt-carga')?.value)||null,
+    certificado_emitido:document.getElementById('tt-cert')?.value!=='nao',
+    observacoes:document.getElementById('tt-obs')?.value?.trim()||null,
+  };
+  if(id>0){const idx=DB.treinamentos.findIndex(x=>x.id===id);if(idx>=0)Object.assign(DB.treinamentos[idx],rec);}
+  else DB.treinamentos.push({id:nextId(DB.treinamentos),...rec});
+  save();closeModal();render();showToast('Treinamento salvo!');
+}
+
+function deleteTreinamento(id){
+  if(!confirm('Excluir este registro de treinamento?'))return;
+  DB.treinamentos=DB.treinamentos.filter(x=>x.id!==id);
+  save();render();showToast('Treinamento excluído','error');
+}
+
+function addTipoTreinamento(){
+  const nome=prompt('Nome do tipo de treinamento:','');
+  if(!nome?.trim())return;
+  const sigla=prompt('Sigla (abreviação):',nome.trim().split(' ')[0]);
+  const meses=parseInt(prompt('Periodicidade (meses de validade):','12')||'12');
+  const lei=prompt('Base legal (opcional):','');
+  DB.tipos_treinamento.push({
+    id:nextId(DB.tipos_treinamento.map((_,i)=>({id:i+1}))),
+    nome:nome.trim(),sigla:sigla?.trim()||nome.trim(),
+    meses,lei:lei?.trim()||'',obrigatorio:false
+  });
+  save();render();showToast('Tipo de treinamento adicionado!');
+}
+
+function editTipoTreinamento(i){
+  const t=DB.tipos_treinamento[i];if(!t)return;
+  showModal('Editar Tipo de Treinamento',`
+    <div class="fg"><label>Nome completo</label>
+      <input type="text" class="fi" id="ttp-nome" value="${esc(t.nome)}"></div>
+    <div class="fr">
+      <div class="fg"><label>Sigla</label>
+        <input type="text" class="fi" id="ttp-sigla" value="${esc(t.sigla)}"></div>
+      <div class="fg"><label>Periodicidade (meses)</label>
+        <input type="number" class="fi" id="ttp-meses" value="${t.meses}" min="1"></div>
+    </div>
+    <div class="fg"><label>Base Legal</label>
+      <input type="text" class="fi" id="ttp-lei" value="${esc(t.lei||'')}" placeholder="Ex: Lei 13.722/2018"></div>
+    <div class="fg"><label>Caráter</label>
+      <select class="fi" id="ttp-obrig">
+        <option value="1"${t.obrigatorio?' selected':''}>Obrigatório</option>
+        <option value="0"${!t.obrigatorio?' selected':''}>Opcional</option>
+      </select></div>`,
+    `<button class="btn btn-sec" onclick="closeModal()">Cancelar</button>
+     <button class="btn btn-pri" onclick="saveTipoTreinamento(${i})"><i data-lucide="save" style="width:13px;height:13px"></i>Salvar</button>`
+  );
+}
+
+function saveTipoTreinamento(i){
+  const t=DB.tipos_treinamento[i];if(!t)return;
+  t.nome=document.getElementById('ttp-nome')?.value?.trim()||t.nome;
+  t.sigla=document.getElementById('ttp-sigla')?.value?.trim()||t.sigla;
+  t.meses=parseInt(document.getElementById('ttp-meses')?.value)||t.meses;
+  t.lei=document.getElementById('ttp-lei')?.value?.trim()||'';
+  t.obrigatorio=document.getElementById('ttp-obrig')?.value==='1';
+  save();closeModal();render();showToast('Tipo atualizado!');
+}
+
+function deleteTipoTreinamento(i){
+  if(!confirm(`Excluir tipo "${DB.tipos_treinamento[i]?.nome}"?`))return;
+  DB.tipos_treinamento.splice(i,1);
+  save();render();showToast('Tipo removido','error');
+}
+
 // ── AUDITORIA ─────────────────────────────────────────────────────────────────
 const AUDIT_TEMPLATE=[
   {cat:'Licenciamento Municipal',items:['Alvará de Funcionamento vigente','Habite-se apresentado','AVCB Corpo de Bombeiros vigente']},
@@ -4298,568 +4678,7 @@ async function deleteArquivo(id,escolaId){
 }
 
 // ── INIT ──────────────────────────────────────────────────────────────────────
-// go('dashboard'); — substituído por checkAuth() do bloco Supabase abaixo
-
-
-// ── SUPABASE ──────────────────────────────────────────────────────────────────
-const {createClient}=supabase;
-const sb=createClient('https://ruirdarbiftvnducmfxt.supabase.co','eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJ1aXJkYXJiaWZ0dm5kdWNtZnh0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODEyODk0MzcsImV4cCI6MjA5Njg2NTQzN30.XznYUuv30VAW6jtH3leuaFFlOZC_ViMOCU1wGZnUJd8');
-let currentUser=null;
-
-// ── AUTH HELPERS ──────────────────────────────────────────────────────────────
-function showLoginMsg(msg,type='error'){
-  const el=document.getElementById('login-msg');
-  if(!el)return;
-  el.textContent=msg;el.className='login-msg show '+type;
-}
-function clearLoginMsg(){
-  const el=document.getElementById('login-msg');
-  if(el){el.className='login-msg';el.textContent='';}
-}
-function setLoginBtnLoading(btnId,loading,text){
-  const btn=document.getElementById(btnId)||document.querySelector('#form-login .login-btn, #form-register .login-btn');
-  if(btn){btn.disabled=loading;if(text)btn.textContent=loading?'Aguarde...':text;}
-}
-function switchTab(tab){
-  clearLoginMsg();
-  document.getElementById('form-login').style.display=tab==='login'?'block':'none';
-  document.getElementById('form-register').style.display=tab==='register'?'block':'none';
-  document.getElementById('tab-login').className='login-tab'+(tab==='login'?' active':'');
-  document.getElementById('tab-register').className='login-tab'+(tab==='register'?' active':'');
-}
-
-async function doLogin(){
-  const email=document.getElementById('li-email')?.value?.trim();
-  const pw=document.getElementById('li-pw')?.value;
-  if(!email||!pw){showLoginMsg('Preencha e-mail e senha.');return;}
-  clearLoginMsg();
-  const btn=document.querySelector('#form-login .login-btn');
-  if(btn){btn.disabled=true;btn.textContent='Entrando...';}
-  const {data,error}=await sb.auth.signInWithPassword({email,password:pw});
-  if(btn){btn.disabled=false;btn.textContent='Entrar';}
-  if(error){
-    showLoginMsg(error.message==='Invalid login credentials'?'E-mail ou senha incorretos.':error.message);
-    return;
-  }
-  currentUser=data.user;
-  await bootApp();
-}
-
-async function doRegister(){
-  const nome=document.getElementById('reg-nome')?.value?.trim();
-  const email=document.getElementById('reg-email')?.value?.trim();
-  const pw=document.getElementById('reg-pw')?.value;
-  if(!nome||!email||!pw){showLoginMsg('Preencha todos os campos.');return;}
-  if(pw.length<6){showLoginMsg('A senha precisa ter pelo menos 6 caracteres.');return;}
-  clearLoginMsg();
-  const btn=document.querySelector('#form-register .login-btn');
-  if(btn){btn.disabled=true;btn.textContent='Criando conta...';}
-  const {data,error}=await sb.auth.signUp({email,password:pw,options:{data:{full_name:nome}}});
-  if(btn){btn.disabled=false;btn.textContent='Criar Conta';}
-  if(error){showLoginMsg(error.message);return;}
-  // Se confirmação de email desabilitada no Supabase, já faz login direto
-  if(data.session){
-    currentUser=data.user;
-    await bootApp();
-  } else {
-    showLoginMsg('Conta criada! Verifique seu e-mail e clique no link de confirmação para ativar.','success');
-  }
-}
-
-async function doLogout(){
-  await sb.auth.signOut();
-  currentUser=null;
-  document.getElementById('app-root').style.display='none';
-  document.getElementById('login-root').style.display='flex';
-  clearLoginMsg();
-}
-
-async function checkAuth(){
-  const {data:{session}}=await sb.auth.getSession();
-  if(!session){
-    document.getElementById('login-root').style.display='flex';
-    return;
-  }
-  currentUser=session.user;
-  await bootApp();
-}
-
-async function bootApp(){
-  document.getElementById('login-root').style.display='none';
-  document.getElementById('loading-overlay').style.display='flex';
-  document.getElementById('loading-text').textContent='Carregando dados...';
-  try{
-    await loadFromSupabase();
-    document.getElementById('loading-overlay').style.display='none';
-    document.getElementById('app-root').style.display='block';
-    go('dashboard');
-  }catch(e){
-    document.getElementById('loading-overlay').style.display='none';
-    document.getElementById('login-root').style.display='flex';
-    showLoginMsg('Erro ao carregar: '+(e.message||String(e)));
-  }
-}
-
-// ── LOAD FROM SUPABASE ────────────────────────────────────────────────────────
-async function loadFromSupabase(){
-  const results=await Promise.all([
-    sb.from('redes').select('*').order('nome'),
-    sb.from('escolas').select('*').eq('ativa',true).order('nome'),
-    sb.from('documentos').select('*'),
-    sb.from('processos_sei').select('*').order('created_at',{ascending:false}),
-    sb.from('andamentos').select('*').order('data'),
-    sb.from('checklist_items').select('*'),
-    sb.from('tarefas').select('*').order('prazo'),
-    sb.from('financeiro').select('*').order('data_vencimento'),
-    sb.from('contatos').select('*').order('nome'),
-    sb.from('usuarios_app').select('*').eq('ativo',true),
-    sb.from('etaps').select('*'),
-    sb.from('etap_membros').select('*'),
-    sb.from('etap_publicacoes_do').select('*'),
-    sb.from('etap_processos_vinculados').select('*'),
-    sb.from('auditorias').select('*').order('data',{ascending:false}),
-    sb.from('auditoria_items').select('*'),
-    sb.from('legislacoes').select('*').order('data',{ascending:false}),
-    sb.from('modelos_anexos').select('*').order('titulo'),
-    sb.from('tipos_processo').select('*').order('ordem'),
-  ]);
-
-  results.forEach(r=>{if(r.error)throw r.error;});
-  const [redes,escolas,docs,procs,ands,chkItems,tarefas,fin,contatos,
-         usuarios,etapsList,membros,dosPublic,etapProcsVinc,
-         auditorias,audItems,legislacoes,modelos,tiposProc]=results.map(r=>r.data||[]);
-
-  DB.redes=redes;
-  const redeMap={};redes.forEach(r=>redeMap[r.id]=r.nome);
-  const escolaMap={};
-  escolas.forEach(e=>{e.rede=redeMap[e.rede_id]||'';escolaMap[e.id]=e;});
-
-  const allDocs=docs.map(d=>{
-    const e=escolaMap[d.escola_id]||{};
-    return{...d,escola:e.nome||'',rede:e.rede||'',estado:e.estado||''};
-  });
-  DB.docs=allDocs;
-
-  const docsWithSt=allDocs.map(d=>{...d,_s:statusFromDoc(d)});
-  DB.schools=escolas.map(e=>{
-    const sd=docsWithSt.filter(d=>d.escola_id===e.id);
-    return{...e,total_docs:sd.length,ok_docs:sd.filter(d=>d._s==='ok').length,
-      a_vencer:sd.filter(d=>d._s==='a_vencer').length,
-      criticos:sd.filter(d=>['vencido','pendente'].includes(d._s)).length};
-  });
-
-  const andByProc={},chkByProc={};
-  ands.forEach(a=>{(andByProc[a.processo_id]||(andByProc[a.processo_id]=[])).push(a);});
-  chkItems.forEach(i=>{(chkByProc[i.processo_id]||(chkByProc[i.processo_id]=[])).push(i);});
-
-  DB.procs=procs.map(p=>{
-    const e=escolaMap[p.escola_id]||{};
-    return{...p,escola:e.nome||'',rede:e.rede||'',
-      andamentos:andByProc[p.id]||[],checklist_items:chkByProc[p.id]||[]};
-  });
-
-  DB.tarefas=tarefas;
-  DB.financeiro=fin;
-  DB.contatos=contatos;
-  DB.usuarios=usuarios;
-  DB.arquivos=[];
-  DB.tipos_processo=tiposProc.map(t=>t.nome);
-  DB.legislacoes=legislacoes;
-  DB.modelos_anexos=modelos;
-
-  const memByEtap={},doByEtap={},pvByEtap={};
-  membros.forEach(m=>{(memByEtap[m.etap_id]||(memByEtap[m.etap_id]=[])).push(m);});
-  dosPublic.forEach(d=>{(doByEtap[d.etap_id]||(doByEtap[d.etap_id]=[])).push(d);});
-  etapProcsVinc.forEach(ep=>{(pvByEtap[ep.etap_id]||(pvByEtap[ep.etap_id]=[])).push(ep.processo_id);});
-  DB.etaps=etapsList.map(e=>{
-    const escola=escolaMap[e.escola_id]||{};
-    return{...e,escola:escola.nome||e.escola||'',rede:escola.rede||e.rede||'',
-      membros:memByEtap[e.id]||[],publicacoes_do:doByEtap[e.id]||[],
-      processos_vinculados:pvByEtap[e.id]||[]};
-  });
-
-  const aiByAud={};
-  audItems.forEach(i=>{(aiByAud[i.auditoria_id]||(aiByAud[i.auditoria_id]=[])).push(i);});
-  DB.auditorias=auditorias.map(a=>{
-    const e=escolaMap[a.escola_id]||{};
-    return{...a,escola:e.nome||a.escola||'',rede:e.rede||a.rede||'',
-      items:aiByAud[a.id]||[]};
-  });
-}
-
-// ── SUPABASE HELPERS ──────────────────────────────────────────────────────────
-async function sbInsert(table,data){
-  const r=await sb.from(table).insert(data).select().single();
-  if(r.error)throw r.error;
-  return r.data;
-}
-async function sbUpdate(table,data,id){
-  const r=await sb.from(table).update(data).eq('id',id);
-  if(r.error)throw r.error;
-}
-async function sbDelete(table,id){
-  const r=await sb.from(table).delete().eq('id',id);
-  if(r.error)throw r.error;
-}
-async function sbUpsert(table,data){
-  const r=await sb.from(table).upsert(data).select().single();
-  if(r.error)throw r.error;
-  return r.data;
-}
-
-// Reload tudo e re-renderizar
-async function reload(){
-  await loadFromSupabase();
-  render();
-}
-
-// ── OVERRIDE save() ───────────────────────────────────────────────────────────
-// Mantém localStorage como cache local
-function save(){
-  try{localStorage.setItem('rg_v3',JSON.stringify(DB));}catch(e){}
-}
-
-// ── FILE STORAGE (Supabase Storage) ───────────────────────────────────────────
-async function uploadToStorage(bucket,path,file){
-  const {data,error}=await sb.storage.from(bucket).upload(path,file,{upsert:true});
-  if(error)throw error;
-  return data.path;
-}
-async function getSignedUrl(bucket,path,seconds=3600){
-  const {data,error}=await sb.storage.from(bucket).createSignedUrl(path,seconds);
-  if(error)throw error;
-  return data.signedUrl;
-}
-async function deleteFromStorage(bucket,path){
-  await sb.storage.from(bucket).remove([path]);
-}
-
-// Override arquivo functions para usar Supabase Storage
-async function storeFileContent(id,dataURL){
-  // Mantém IndexedDB como cache local também
-  try{
-    const db=await openFileDB();
-    await new Promise((res,rej)=>{const tx=db.transaction('files','readwrite');
-      tx.objectStore('files').put({id,dataURL});tx.oncomplete=res;tx.onerror=rej;});
-  }catch(e){}
-}
-async function loadFileContent(id){
-  // Tenta IndexedDB local primeiro
-  try{
-    const db=await openFileDB();
-    const r=await new Promise((res,rej)=>{const tx=db.transaction('files','readonly');
-      const req=tx.objectStore('files').get(id);
-      req.onsuccess=e=>res(e.target.result?.dataURL||null);req.onerror=rej;});
-    if(r)return r;
-  }catch(e){}
-  return null;
-}
-
-// ── OVERRIDE SAVE FUNCTIONS ───────────────────────────────────────────────────
-// Documenta salvamento
-const _origSaveDoc=saveDoc;
-saveDoc=async function(id){
-  const tipo=document.getElementById('ef-tipo')?.value;
-  const status_=document.getElementById('ef-status')?.value;
-  const data_=document.getElementById('ef-data')?.value;
-  const obs_=document.getElementById('ef-obs')?.value?.trim();
-  const sit_=document.getElementById('ef-situacao')?.value||null;
-  const proto_=document.getElementById('ef-protocolo')?.value?.trim()||null;
-  const dtProto_=document.getElementById('ef-dt-protocolo')?.value||null;
-  if(!tipo){showToast('Selecione o tipo de documento','error');return;}
-  try{
-    await sbUpdate('documentos',{tipo,status:status_,data_vencimento:data_||null,
-      observacoes:obs_||null,situacao:sit_,numero_protocolo:proto_,data_protocolo:dtProto_||null},id);
-    closeModal();await reload();showToast('Documento salvo!');
-  }catch(e){showToast('Erro: '+(e.message||e),'error');}
-};
-
-const _origAddDoc=addDoc;
-addDoc=async function(){
-  const selE=document.getElementById('nd-escola');
-  const escolaId=parseInt(selE?.value)||null;
-  const selOpt=selE?.options[selE.selectedIndex];
-  const tipoSel=document.getElementById('nd-tipo')?.value;
-  const tipo=tipoSel==='_custom'?document.getElementById('nd-custom')?.value?.trim():tipoSel;
-  const status_=document.getElementById('nd-status')?.value||'desconhecido';
-  const data_=document.getElementById('nd-data')?.value||null;
-  const obs_=document.getElementById('nd-obs')?.value?.trim()||null;
-  if(!escolaId||!tipo){showToast('Preencha escola e tipo','error');return;}
-  try{
-    await sbInsert('documentos',{escola_id:escolaId,tipo,status:status_,data_vencimento:data_,observacoes:obs_});
-    closeModal();await reload();showToast('Documento adicionado!');
-  }catch(e){showToast('Erro: '+(e.message||e),'error');}
-};
-
-const _origDeleteDoc=deleteDoc;
-deleteDoc=async function(id){
-  if(!confirm('Excluir este documento?'))return;
-  try{
-    await sbDelete('documentos',id);await reload();showToast('Documento excluído','error');
-  }catch(e){showToast('Erro: '+(e.message||e),'error');}
-};
-
-const _origSaveProc=saveProc;
-saveProc=async function(id){
-  const num=document.getElementById('ep-num')?.value?.trim();
-  if(!num){showToast('Preencha o número','error');return;}
-  const selE=document.getElementById('ep-escola');
-  const escolaId=parseInt(selE?.value)||null;
-  const selOpt=selE?.options[selE?.selectedIndex];
-  const data_={numero:num,escola_id:escolaId,
-    tipo_processo:document.getElementById('ep-tipo')?.value||null,
-    responsavel:document.getElementById('ep-resp')?.value||null,
-    forma_exigencia:document.getElementById('ep-forma')?.value?.trim()||null,
-    data_recebimento:document.getElementById('ep-rec')?.value?.trim()||null,
-    status:document.getElementById('ep-status')?.value||'aberto',
-    prazo:document.getElementById('ep-prazo')?.value?.trim()||null,
-    observacoes:document.getElementById('ep-obs')?.value?.trim()||null};
-  try{
-    if(id>0){await sbUpdate('processos_sei',data_,id);}
-    else{await sbInsert('processos_sei',data_);}
-    closeModal();await reload();showToast('Processo salvo!');
-  }catch(e){showToast('Erro: '+(e.message||e),'error');}
-};
-
-const _origDeleteProc=deleteProc;
-deleteProc=async function(id){
-  if(!confirm('Excluir este processo?'))return;
-  try{
-    await sbDelete('processos_sei',id);await reload();showToast('Processo excluído','error');
-  }catch(e){showToast('Erro: '+(e.message||e),'error');}
-};
-
-const _origAddAndamento=addAndamento;
-addAndamento=async function(procId){
-  const txt=document.getElementById('novo-and')?.value?.trim();
-  const dt=document.getElementById('novo-and-data')?.value||todayISO();
-  if(!txt){showToast('Digite o andamento','error');return;}
-  try{
-    await sbInsert('andamentos',{processo_id:procId,data:dt,texto:txt,autor:DB.usuarios[0]?.nome||'Usuário'});
-    await reload();openProcDetail(procId);showToast('Andamento registrado!');
-  }catch(e){showToast('Erro: '+(e.message||e),'error');}
-};
-
-const _origToggleChkItem=toggleChkItem;
-toggleChkItem=async function(procId,itemId,done){
-  try{
-    await sbUpdate('checklist_items',{done},itemId);
-    await loadFromSupabase();openProcDetail(procId);
-  }catch(e){showToast('Erro: '+(e.message||e),'error');}
-};
-
-const _origAddChkItem=addChkItem;
-addChkItem=async function(procId){
-  const input=document.getElementById('chk-new-'+procId);
-  const texto=(input?.value||'').trim();
-  if(!texto){showToast('Digite o item','error');return;}
-  try{
-    await sbInsert('checklist_items',{processo_id:procId,texto,done:false,obs:''});
-    await loadFromSupabase();openProcDetail(procId);showToast('Item adicionado!');
-  }catch(e){showToast('Erro: '+(e.message||e),'error');}
-};
-
-const _origDeleteChkItem=deleteChkItem;
-deleteChkItem=async function(procId,itemId){
-  try{
-    await sbDelete('checklist_items',itemId);await loadFromSupabase();openProcDetail(procId);
-  }catch(e){showToast('Erro: '+(e.message||e),'error');}
-};
-
-const _origSaveTarefa=saveTarefa;
-saveTarefa=async function(id){
-  const titulo=document.getElementById('ta-titulo')?.value?.trim();
-  if(!titulo){showToast('Título é obrigatório','error');return;}
-  const escolaEl=document.getElementById('ta-escola');
-  const escola=escolaEl?.value||null;
-  const escolaId=DB.schools.find(s=>s.nome===escola)?.id||null;
-  const data_={titulo,descricao:document.getElementById('ta-desc')?.value?.trim()||null,
-    responsavel:document.getElementById('ta-resp')?.value||null,
-    prioridade:document.getElementById('ta-prio')?.value||'media',
-    escola,escola_id:escolaId,categoria:document.getElementById('ta-cat')?.value||null,
-    prazo:document.getElementById('ta-prazo')?.value||null,
-    status:document.getElementById('ta-status')?.value||'pendente',
-    observacoes:document.getElementById('ta-obs')?.value?.trim()||null};
-  try{
-    if(id>0){await sbUpdate('tarefas',data_,id);}
-    else{await sbInsert('tarefas',{...data_,criada_em:todayISO()});}
-    closeModal();await reload();showToast('Tarefa salva!');
-  }catch(e){showToast('Erro: '+(e.message||e),'error');}
-};
-
-const _origDeleteTarefa=deleteTarefa;
-deleteTarefa=async function(id){
-  if(!confirm('Excluir esta tarefa?'))return;
-  try{await sbDelete('tarefas',id);await reload();showToast('Tarefa excluída','error');}
-  catch(e){showToast('Erro: '+(e.message||e),'error');}
-};
-
-const _origSaveFin=saveFin;
-saveFin=async function(id){
-  const desc=document.getElementById('fi-desc')?.value?.trim();
-  const cat=document.getElementById('fi-cat')?.value;
-  if(!desc||!cat){showToast('Preencha descrição e categoria','error');return;}
-  const selE=document.getElementById('fi-escola');
-  const escolaNome=selE?.value||null;
-  const escolaId=DB.schools.find(s=>s.nome===escolaNome)?.id||null;
-  const valorStr=document.getElementById('fi-valor')?.value?.replace(/\./g,'').replace(',','.')||'0';
-  const valor=parseFloat(valorStr)||0;
-  if(valor<=0){showToast('Informe um valor válido','error');return;}
-  const data_={descricao:desc,categoria:cat,escola:escolaNome,escola_id:escolaId,
-    orgao:document.getElementById('fi-orgao')?.value?.trim()||null,
-    responsavel:document.getElementById('fi-resp')?.value||null,
-    valor,data_vencimento:document.getElementById('fi-dvenc')?.value||null,
-    data_pagamento:document.getElementById('fi-dpag')?.value||null,
-    status:document.getElementById('fi-status')?.value||'pendente',
-    forma_pagamento:document.getElementById('fi-forma')?.value||null,
-    observacoes:document.getElementById('fi-obs')?.value?.trim()||null};
-  try{
-    if(id>0){await sbUpdate('financeiro',data_,id);}
-    else{await sbInsert('financeiro',data_);}
-    closeModal();await reload();showToast('Lançamento salvo!');
-  }catch(e){showToast('Erro: '+(e.message||e),'error');}
-};
-
-const _origDeleteFin=deleteFin;
-deleteFin=async function(id){
-  if(!confirm('Excluir este lançamento?'))return;
-  try{await sbDelete('financeiro',id);await reload();showToast('Lançamento excluído','error');}
-  catch(e){showToast('Erro: '+(e.message||e),'error');}
-};
-
-const _origSaveContato=saveContato;
-saveContato=async function(id){
-  const nome=document.getElementById('ct-nome')?.value?.trim();
-  if(!nome){showToast('Nome é obrigatório','error');return;}
-  const data_={nome,cargo:document.getElementById('ct-cargo')?.value||null,
-    regional:document.getElementById('ct-regional')?.value||null,
-    escola_vinculada:document.getElementById('ct-escola')?.value||null,
-    telefone:document.getElementById('ct-tel')?.value?.trim()||null,
-    email:document.getElementById('ct-email')?.value?.trim()||null,
-    observacoes:document.getElementById('ct-obs')?.value?.trim()||null};
-  try{
-    if(id>0){await sbUpdate('contatos',data_,id);}
-    else{await sbInsert('contatos',data_);}
-    closeModal();await reload();showToast('Contato salvo!');
-  }catch(e){showToast('Erro: '+(e.message||e),'error');}
-};
-
-const _origDeleteContato=deleteContato;
-deleteContato=async function(id){
-  if(!confirm('Excluir este contato?'))return;
-  try{await sbDelete('contatos',id);await reload();showToast('Contato excluído','error');}
-  catch(e){showToast('Erro: '+(e.message||e),'error');}
-};
-
-const _origSaveUsuario=saveUsuario;
-saveUsuario=async function(id){
-  const nome=document.getElementById('us-nome')?.value?.trim();
-  if(!nome){showToast('Nome é obrigatório','error');return;}
-  const data_={nome,cargo:document.getElementById('us-cargo')?.value?.trim()||null,
-    email:document.getElementById('us-email')?.value?.trim()||null,
-    setor:document.getElementById('us-setor')?.value?.trim()||null,
-    ativo:document.getElementById('us-ativo')?.value==='1'};
-  try{
-    if(id>0){await sbUpdate('usuarios_app',data_,id);}
-    else{await sbInsert('usuarios_app',data_);}
-    closeModal();await reload();showToast('Usuário salvo!');
-  }catch(e){showToast('Erro: '+(e.message||e),'error');}
-};
-
-const _origDeleteUsuario=deleteUsuario;
-deleteUsuario=async function(id){
-  if(DB.usuarios.length<=1){showToast('É necessário ao menos 1 usuário','error');return;}
-  if(!confirm('Excluir este usuário?'))return;
-  try{await sbDelete('usuarios_app',id);await reload();showToast('Usuário removido','error');}
-  catch(e){showToast('Erro: '+(e.message||e),'error');}
-};
-
-const _origSaveEscola=saveEscola;
-saveEscola=async function(id){
-  const nome=document.getElementById('es-nome')?.value?.trim();
-  if(!nome){showToast('Nome é obrigatório','error');return;}
-  const censo=document.getElementById('es-censo')?.value?.trim().replace(/\D/g,'')||null;
-  const redeEl=document.getElementById('es-rede');
-  let redeNome=redeEl?.value||'';
-  let redeId=null;
-  if(redeNome==='__nova__'){
-    const novaNome=document.getElementById('es-rede-nova')?.value?.trim();
-    if(!novaNome){showToast('Digite o nome da nova rede','error');return;}
-    redeNome=novaNome;
-    try{const r=await sbInsert('redes',{nome:novaNome});redeId=r.id;}catch(e){}
-  }else{
-    redeId=DB.redes.find(r=>r.nome===redeNome)?.id||null;
-  }
-  const statusU=document.querySelector('input[name="es-status-u"]:checked')?.value||'em_funcionamento';
-  const data_={nome,rede_id:redeId,
-    cnpj:document.getElementById('es-cnpj')?.value?.trim()||null,
-    inscricao_municipal:document.getElementById('es-insc')?.value?.trim()||null,
-    codigo_censo:censo||null,status_unidade:statusU,
-    estado:document.getElementById('es-estado')?.value||'RJ',
-    o_que_funciona:document.getElementById('es-funciona')?.value?.trim()||null,
-    observacoes:document.getElementById('es-obs')?.value?.trim()||null,ativa:true};
-  try{
-    if(id>0){await sbUpdate('escolas',data_,id);closeModal();await reload();openEscolaDrawer(id);showToast('Escola atualizada!');}
-    else{await sbInsert('escolas',data_);closeModal();await reload();showToast('Escola cadastrada!');}
-  }catch(e){showToast('Erro: '+(e.message||e),'error');}
-};
-
-const _origDeleteEscola=deleteEscola;
-deleteEscola=async function(id){
-  const s=DB.schools.find(x=>x.id===id);if(!s)return;
-  if(!confirm('Excluir "'+s.nome+'" e todos os dados vinculados?'))return;
-  try{await sbDelete('escolas',id);closeDrawer();await reload();showToast('Escola excluída','error');}
-  catch(e){showToast('Erro: '+(e.message||e),'error');}
-};
-
-const _origSaveLeg=saveLeg;
-saveLeg=async function(id){
-  const titulo=document.getElementById('lg-titulo')?.value?.trim();
-  const orgao=document.getElementById('lg-orgao')?.value;
-  const tipo=document.getElementById('lg-tipo')?.value;
-  if(!titulo||!orgao||!tipo){showToast('Preencha título, órgão e tipo','error');return;}
-  const data_={titulo,orgao,tipo,
-    numero:document.getElementById('lg-num')?.value?.trim()||null,
-    data:document.getElementById('lg-data')?.value||null,
-    ementa:document.getElementById('lg-ementa')?.value?.trim()||null,
-    link_oficial:document.getElementById('lg-link')?.value?.trim()||null};
-  try{
-    if(id>0){await sbUpdate('legislacoes',data_,id);}
-    else{await sbInsert('legislacoes',data_);}
-    closeModal();await reload();showToast('Legislação salva!');
-  }catch(e){showToast('Erro: '+(e.message||e),'error');}
-};
-
-const _origSaveModelo=saveModelo;
-saveModelo=async function(id){
-  const titulo=document.getElementById('mo-titulo')?.value?.trim();
-  const cat=document.getElementById('mo-cat')?.value;
-  if(!titulo||!cat){showToast('Preencha título e categoria','error');return;}
-  const data_={titulo,categoria:cat,
-    versao:document.getElementById('mo-versao')?.value?.trim()||null,
-    descricao:document.getElementById('mo-desc')?.value?.trim()||null,
-    instrucoes:document.getElementById('mo-inst')?.value?.trim()||null};
-  try{
-    if(id>0){await sbUpdate('modelos_anexos',data_,id);}
-    else{await sbInsert('modelos_anexos',data_);}
-    closeModal();await reload();showToast('Modelo salvo!');
-  }catch(e){showToast('Erro: '+(e.message||e),'error');}
-};
-
-// ── EXPORTAR DATA (Supabase) ──────────────────────────────────────────────────
-function exportData(){
-  const blob=new Blob([JSON.stringify(DB,null,2)],{type:'application/json'});
-  const a=document.createElement('a');a.href=URL.createObjectURL(blob);
-  a.download='regulareduc_backup_'+todayISO()+'.json';a.click();
-  showToast('Backup exportado!');
-}
-function resetData(){
-  showToast('Para resetar use o painel Supabase → Table Editor','info');
-}
-
-// ── INIT ──────────────────────────────────────────────────────────────────────
-// (substitui go('dashboard') do final do script original)
-checkAuth();
+go('dashboard');
 
 </script>
 </body>
