@@ -239,21 +239,22 @@ textarea{resize:vertical;min-height:72px}
 ::-webkit-scrollbar-thumb{background:var(--border);border-radius:3px}
 
 #login-root{position:fixed;inset:0;background:#F0F4FA;display:flex;align-items:center;justify-content:center;z-index:9999}
-.login-card{background:#fff;border-radius:16px;padding:40px 36px;width:100%;max-width:400px;box-shadow:0 8px 40px rgba(0,0,0,.12);text-align:center}
-.login-logo{font-size:28px;font-weight:800;color:#1B3A6B;letter-spacing:-.5px;margin-bottom:4px}
-.login-sub{font-size:13px;color:#6B7280;margin-bottom:28px}
-.login-input{width:100%;padding:11px 14px;border:1.5px solid #E5E7EB;border-radius:10px;font-size:14px;outline:none;margin-bottom:12px;font-family:inherit;transition:border-color .15s}
+.login-card{background:#fff;border-radius:16px;padding:36px;width:100%;max-width:420px;box-shadow:0 8px 40px rgba(0,0,0,.12)}
+.login-logo{font-size:26px;font-weight:800;color:#1B3A6B;letter-spacing:-.5px;text-align:center;margin-bottom:4px}
+.login-sub{font-size:12px;color:#6B7280;text-align:center;margin-bottom:24px}
+.login-tabs{display:flex;background:#F0F4FA;border-radius:10px;padding:3px;margin-bottom:20px}
+.login-tab{flex:1;padding:8px;border:none;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;background:transparent;color:#6B7280;transition:.15s;font-family:inherit}
+.login-tab.active{background:#fff;color:#1B3A6B;box-shadow:0 1px 4px rgba(0,0,0,.1)}
+.login-input{width:100%;padding:11px 14px;border:1.5px solid #E5E7EB;border-radius:10px;font-size:14px;outline:none;margin-bottom:12px;font-family:inherit;transition:border-color .15s;box-sizing:border-box}
 .login-input:focus{border-color:#2D6BE4}
-.login-btn{width:100%;padding:12px;background:#1B3A6B;color:#fff;border:none;border-radius:10px;font-size:14px;font-weight:700;cursor:pointer;transition:.15s;font-family:inherit}
+.login-btn{width:100%;padding:12px;background:#1B3A6B;color:#fff;border:none;border-radius:10px;font-size:14px;font-weight:700;cursor:pointer;transition:.15s;font-family:inherit;margin-top:4px}
 .login-btn:hover{background:#2D6BE4}
 .login-btn:disabled{opacity:.6;cursor:not-allowed}
-.login-err{font-size:12px;padding:8px 12px;border-radius:8px;margin-bottom:12px;text-align:left;display:none}
-.login-err.show{display:block}
-.login-err.error{background:#FEE2E2;color:#991B1B}
-.login-err.info{background:#EFF6FF;color:#1D4ED8}
-.login-err.success{background:#DCFCE7;color:#15803D}
-.login-toggle{font-size:12px;color:#6B7280;margin-top:14px;cursor:pointer}
-.login-toggle span{color:#2D6BE4;font-weight:600;cursor:pointer}
+.login-msg{font-size:12px;padding:10px 14px;border-radius:8px;margin-bottom:14px;display:none;line-height:1.5}
+.login-msg.show{display:block}
+.login-msg.error{background:#FEE2E2;color:#991B1B;border:1px solid #FECACA}
+.login-msg.info{background:#EFF6FF;color:#1D4ED8;border:1px solid #BFDBFE}
+.login-msg.success{background:#DCFCE7;color:#15803D;border:1px solid #BBF7D0}
 #loading-overlay{position:fixed;inset:0;background:rgba(27,58,107,.92);display:none;align-items:center;justify-content:center;z-index:9998;flex-direction:column;gap:16px}
 .loading-spinner{width:40px;height:40px;border:3px solid rgba(255,255,255,.3);border-top-color:#fff;border-radius:50%;animation:spin .8s linear infinite}
 .loading-text{color:#fff;font-size:14px;font-weight:500}
@@ -268,17 +269,30 @@ textarea{resize:vertical;min-height:72px}
   <div class="login-card">
     <div class="login-logo">RegularEduc</div>
     <div class="login-sub">Plataforma de Gestão Regulatória Escolar</div>
-    <div class="login-err" id="login-msg"></div>
-    <div id="login-nome-wrap" style="display:none">
-      <input class="login-input" type="text" id="li-nome" placeholder="Nome completo">
+    <!-- Tabs -->
+    <div class="login-tabs">
+      <button class="login-tab active" id="tab-login" onclick="switchTab('login')">Entrar</button>
+      <button class="login-tab" id="tab-register" onclick="switchTab('register')">Criar Conta</button>
     </div>
-    <input class="login-input" type="email" id="li-email" placeholder="E-mail"
-           onkeydown="if(event.key==='Enter')document.getElementById('li-pw').focus()">
-    <input class="login-input" type="password" id="li-pw" placeholder="Senha"
-           onkeydown="if(event.key==='Enter')doLogin()">
-    <button class="login-btn" id="login-btn" onclick="doLogin()">Entrar</button>
-    <div class="login-toggle" id="login-toggle">
-      Não tem conta? <span onclick="toggleLoginMode()">Criar conta</span>
+    <!-- Mensagem -->
+    <div class="login-msg" id="login-msg"></div>
+    <!-- Formulário Entrar -->
+    <div id="form-login">
+      <input class="login-input" type="email" id="li-email" placeholder="E-mail"
+             onkeydown="if(event.key==='Enter')document.getElementById('li-pw').focus()">
+      <input class="login-input" type="password" id="li-pw" placeholder="Senha"
+             onkeydown="if(event.key==='Enter')doLogin()">
+      <button class="login-btn" onclick="doLogin()">Entrar</button>
+    </div>
+    <!-- Formulário Criar Conta -->
+    <div id="form-register" style="display:none">
+      <input class="login-input" type="text" id="reg-nome" placeholder="Nome completo"
+             onkeydown="if(event.key==='Enter')document.getElementById('reg-email').focus()">
+      <input class="login-input" type="email" id="reg-email" placeholder="E-mail"
+             onkeydown="if(event.key==='Enter')document.getElementById('reg-pw').focus()">
+      <input class="login-input" type="password" id="reg-pw" placeholder="Senha (mínimo 6 caracteres)"
+             onkeydown="if(event.key==='Enter')doRegister()">
+      <button class="login-btn" onclick="doRegister()">Criar Conta</button>
     </div>
   </div>
 </div>
@@ -4291,59 +4305,65 @@ go('dashboard');
 const {createClient}=supabase;
 const sb=createClient('https://ruirdarbiftvnducmfxt.supabase.co','eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJ1aXJkYXJiaWZ0dm5kdWNtZnh0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODEyODk0MzcsImV4cCI6MjA5Njg2NTQzN30.XznYUuv30VAW6jtH3leuaFFlOZC_ViMOCU1wGZnUJd8');
 let currentUser=null;
-let loginMode='login';
 
-// ── AUTH ──────────────────────────────────────────────────────────────────────
-function setLoginLoading(v){
-  const btn=document.getElementById('login-btn');
-  if(btn){btn.disabled=v;btn.textContent=v?'Aguarde...':loginMode==='login'?'Entrar':'Criar conta';}
-}
+// ── AUTH HELPERS ──────────────────────────────────────────────────────────────
 function showLoginMsg(msg,type='error'){
   const el=document.getElementById('login-msg');
   if(!el)return;
-  el.textContent=msg;el.className='login-err show '+type;
+  el.textContent=msg;el.className='login-msg show '+type;
 }
 function clearLoginMsg(){
   const el=document.getElementById('login-msg');
-  if(el){el.className='login-err';el.textContent='';}
+  if(el){el.className='login-msg';el.textContent='';}
 }
-function toggleLoginMode(){
-  loginMode=loginMode==='login'?'register':'login';
-  const nomeWrap=document.getElementById('login-nome-wrap');
-  const btn=document.getElementById('login-btn');
-  const toggle=document.getElementById('login-toggle');
-  if(nomeWrap)nomeWrap.style.display=loginMode==='register'?'block':'none';
-  if(btn)btn.textContent=loginMode==='login'?'Entrar':'Criar conta';
-  if(btn)btn.onclick=loginMode==='login'?doLogin:doRegister;
-  if(toggle)toggle.innerHTML=loginMode==='login'?'Não tem conta? <span onclick="toggleLoginMode()">Criar conta</span>':'Já tem conta? <span onclick="toggleLoginMode()">Entrar</span>';
+function setLoginBtnLoading(btnId,loading,text){
+  const btn=document.getElementById(btnId)||document.querySelector('#form-login .login-btn, #form-register .login-btn');
+  if(btn){btn.disabled=loading;if(text)btn.textContent=loading?'Aguarde...':text;}
+}
+function switchTab(tab){
   clearLoginMsg();
+  document.getElementById('form-login').style.display=tab==='login'?'block':'none';
+  document.getElementById('form-register').style.display=tab==='register'?'block':'none';
+  document.getElementById('tab-login').className='login-tab'+(tab==='login'?' active':'');
+  document.getElementById('tab-register').className='login-tab'+(tab==='register'?' active':'');
 }
 
 async function doLogin(){
-  const email=(document.getElementById('li-email')||{}).value?.trim();
-  const pw=(document.getElementById('li-pw')||{}).value;
+  const email=document.getElementById('li-email')?.value?.trim();
+  const pw=document.getElementById('li-pw')?.value;
   if(!email||!pw){showLoginMsg('Preencha e-mail e senha.');return;}
-  setLoginLoading(true);clearLoginMsg();
+  clearLoginMsg();
+  const btn=document.querySelector('#form-login .login-btn');
+  if(btn){btn.disabled=true;btn.textContent='Entrando...';}
   const {data,error}=await sb.auth.signInWithPassword({email,password:pw});
-  setLoginLoading(false);
-  if(error){showLoginMsg(error.message==='Invalid login credentials'?'E-mail ou senha incorretos.':error.message);return;}
+  if(btn){btn.disabled=false;btn.textContent='Entrar';}
+  if(error){
+    showLoginMsg(error.message==='Invalid login credentials'?'E-mail ou senha incorretos.':error.message);
+    return;
+  }
   currentUser=data.user;
   await bootApp();
 }
 
 async function doRegister(){
-  const nome=(document.getElementById('li-nome')||{}).value?.trim();
-  const email=(document.getElementById('li-email')||{}).value?.trim();
-  const pw=(document.getElementById('li-pw')||{}).value;
+  const nome=document.getElementById('reg-nome')?.value?.trim();
+  const email=document.getElementById('reg-email')?.value?.trim();
+  const pw=document.getElementById('reg-pw')?.value;
   if(!nome||!email||!pw){showLoginMsg('Preencha todos os campos.');return;}
-  if(pw.length<6){showLoginMsg('Senha mínimo 6 caracteres.');return;}
-  setLoginLoading(true);clearLoginMsg();
-  const {data,error}=await sb.auth.signUp({email,password:pw,options:{data:{nome}}});
-  setLoginLoading(false);
+  if(pw.length<6){showLoginMsg('A senha precisa ter pelo menos 6 caracteres.');return;}
+  clearLoginMsg();
+  const btn=document.querySelector('#form-register .login-btn');
+  if(btn){btn.disabled=true;btn.textContent='Criando conta...';}
+  const {data,error}=await sb.auth.signUp({email,password:pw,options:{data:{full_name:nome}}});
+  if(btn){btn.disabled=false;btn.textContent='Criar Conta';}
   if(error){showLoginMsg(error.message);return;}
-  // Insert user in usuarios_app
-  try{await sb.from('usuarios_app').insert({nome,email,cargo:'Usuário',ativo:true});}catch(e){}
-  showLoginMsg('Conta criada! Verifique seu e-mail para confirmar.','success');
+  // Se confirmação de email desabilitada no Supabase, já faz login direto
+  if(data.session){
+    currentUser=data.user;
+    await bootApp();
+  } else {
+    showLoginMsg('Conta criada! Verifique seu e-mail e clique no link de confirmação para ativar.','success');
+  }
 }
 
 async function doLogout(){
